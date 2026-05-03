@@ -1,0 +1,11 @@
+{
+  "name": "claude-harness",
+  "description": "Markdown-only state, progress and feature tracking layer for Claude Code. Companion to Superpowers.",
+  "version": "0.1.0",
+  "author": {
+    "name": "TODO(brief-clarify): tu nombre",
+    "email": "TODO(brief-clarify): tu email"
+  },
+  "homepage": "TODO(brief-clarify): https://github.com/<usuario>/claude-harness",
+  "license": "MIT"
+}
