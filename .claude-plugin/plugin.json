@@ -3,9 +3,9 @@
   "description": "Markdown-only state, progress and feature tracking layer for Claude Code. Companion to Superpowers.",
   "version": "0.1.0",
   "author": {
-    "name": "TODO(brief-clarify): tu nombre",
-    "email": "TODO(brief-clarify): tu email"
+    "name": "Felipe Villacorte",
+    "email": "fvilla.emp@gmail.com"
   },
-  "homepage": "TODO(brief-clarify): https://github.com/<usuario>/claude-harness",
+  "homepage": "https://github.com/yulucorte/claude-harness",
   "license": "MIT"
 }
