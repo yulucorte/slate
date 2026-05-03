@@ -1,0 +1,106 @@
+# Feature Format Reference
+
+## Full schema
+
+    ## FEAT-XXX: <Title>
+    - **Status**: backlog | in_progress | done
+    - **Created**: YYYY-MM-DD
+    - **Updated**: YYYY-MM-DD
+    - **Spec**: docs/superpowers/specs/<file>.md | none
+    - **Plan**: docs/superpowers/plans/<file>.md | none
+    - **Verification**: playwright | manual | unit-test | integration-test | none
+    - **Verified**: YYYY-MM-DD                 (only when Status: done)
+    - **Parent**: FEAT-XXX                     (optional, if this is a sub-feature)
+    - **Supersedes**: FEAT-XXX                 (optional, if this replaces a done feature)
+    - **Blocks**: FEAT-XXX, FEAT-YYY           (optional)
+    - **Blocked by**: FEAT-XXX                 (optional)
+    - **Owner**: @handle                       (optional)
+    - **Tags**: tag1, tag2                     (optional)
+
+    ### Subtasks
+    - [ ] FEAT-XXX.1: <subtask description>
+    - [ ] FEAT-XXX.2: <subtask description>
+
+    ### Notes
+    <free-form Markdown>
+
+## ID rules
+
+- IDs are zero-padded to 3 digits: `FEAT-001`, `FEAT-042`, `FEAT-100`.
+- IDs are IMMUTABLE once assigned. Never renumber.
+- Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
+- To find the next available ID: run `next_feature_id features/` from `scripts/lib/parse-features.sh`.
+
+## Movement rules
+
+| From | To | Required |
+|---|---|---|
+| `backlog.md` | `in-progress.md` | User confirms work starts OR plan written |
+| `in-progress.md` | `done.md` | ALL subtasks `[x]` AND `Verified:` date set |
+| `in-progress.md` | `backlog.md` | User explicitly defers (rare) |
+| Any | Edit `done.md` | **FORBIDDEN** — create `Supersedes:` successor instead |
+
+## Examples
+
+### Simple backlog feature
+
+    ## FEAT-042: Add dark mode toggle
+    - **Status**: backlog
+    - **Created**: 2026-05-03
+    - **Updated**: 2026-05-03
+    - **Spec**: none
+    - **Plan**: none
+    - **Verification**: manual
+
+    ### Subtasks
+    - [ ] FEAT-042.1: Add CSS variables for dark theme
+    - [ ] FEAT-042.2: Toggle button in settings UI
+    - [ ] FEAT-042.3: Persist preference in localStorage
+
+    ### Notes
+    User requested this in session 2026-05-02.
+
+### Completed feature
+
+    ## FEAT-007: JWT authentication
+    - **Status**: done
+    - **Created**: 2025-11-01
+    - **Updated**: 2025-11-15
+    - **Spec**: docs/superpowers/specs/2025-11-01-auth.md
+    - **Plan**: docs/superpowers/plans/2025-11-01-auth.md
+    - **Verification**: playwright
+    - **Verified**: 2025-11-15
+
+    ### Subtasks
+    - [x] FEAT-007.1: Login form UI
+    - [x] FEAT-007.2: POST /auth/login endpoint
+    - [x] FEAT-007.3: Session cookie + refresh
+    - [x] FEAT-007.4: Playwright e2e green
+
+    ### Notes
+    Verified 2025-11-15: npx playwright test auth.spec.ts, output: 4 passed.
+
+### Feature replacing a done one
+
+    ## FEAT-043: JWT authentication v2 (OAuth support)
+    - **Status**: in_progress
+    - **Created**: 2026-05-03
+    - **Updated**: 2026-05-03
+    - **Supersedes**: FEAT-007
+    - **Verification**: playwright
+
+    ### Subtasks
+    - [ ] FEAT-043.1: OAuth provider config
+    - [ ] FEAT-043.2: Callback endpoint
+    - [ ] FEAT-043.3: Playwright e2e for OAuth flow
+
+### Blocked feature
+
+    ## FEAT-044: PDF export
+    - **Status**: backlog
+    - **Blocked by**: FEAT-043
+    - **Verification**: manual
+
+    ### Subtasks
+    - [ ] FEAT-044.1: Install PDF library
+    - [ ] FEAT-044.2: Export button
