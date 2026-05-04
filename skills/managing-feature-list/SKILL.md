@@ -45,11 +45,13 @@ Before moving any feature from `backlog.md` to `in-progress.md`:
 2. If count = 0: proceed normally.
 3. If count ≥ 1: emit this warning and wait for explicit confirmation before proceeding:
 
-> "⚠️ Ya tienes FEAT-XXX activa (`<title>`). El harness recomienda terminarla antes de empezar otra. ¿Quieres continuar de todas formas?"
+> "⚠️ Ya tienes `<existing-id>` activa (`<title>`). El harness recomienda terminarla antes de empezar otra. ¿Quieres continuar de todas formas?"
 
 Only move the feature if the user explicitly confirms. If they don't confirm, stop.
 
 ## Branch cleanup on done
+
+This is the required "user confirms branch merged" gate referenced in the movement rules table.
 
 When ALL subtasks are `[x]` and `Verified:` is about to be set, before writing the entry to `done.md`, emit:
 
