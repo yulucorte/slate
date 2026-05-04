@@ -17,6 +17,7 @@ See `docs/feature-format.md` for the full reference. Minimum required fields:
     - **Updated**: YYYY-MM-DD
     - **Spec**: docs/superpowers/specs/<file>.md (or `none` if no spec)
     - **Plan**: docs/superpowers/plans/<file>.md (or `none`)
+    - **Branch**: feat/feat-NNN-<slug>          (none if not yet started)
     - **Verification**: playwright | manual | unit-test | integration-test | none
     - **Verified**: YYYY-MM-DD (only present when Status: done)
 
@@ -48,6 +49,8 @@ Before moving any feature from `backlog.md` to `in-progress.md`:
 > "⚠️ Ya tienes `<existing-id>` activa (`<title>`). El harness recomienda terminarla antes de empezar otra. ¿Quieres continuar de todas formas?"
 
 Only move the feature if the user explicitly confirms. If they don't confirm, stop.
+
+When moving a feature from `backlog.md` to `in-progress.md`, also run the branch auto-suggest protocol from the `breaking-down-features` skill to derive and confirm the `Branch:` name before writing the entry.
 
 ## Branch cleanup on done
 
