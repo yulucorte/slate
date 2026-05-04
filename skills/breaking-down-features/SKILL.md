@@ -30,6 +30,8 @@ When a feature is being placed in `in-progress.md` (either moved from backlog or
    - Remove any character that is not alphanumeric or a hyphen
    - Collapse consecutive hyphens into one
    - Example: "JWT Authentication v2 (OAuth)" → `jwt-authentication-v2-oauth`
+   - If the slug is empty after all transformations, use only the feature ID: `feat/feat-NNN`
+   - If the slug exceeds 50 characters, truncate at the last hyphen before the 50-character mark
 2. Compose the branch name: `feat/feat-NNN-<slug>` where NNN is the zero-padded feature ID.
 3. Propose it to the user:
    > "Propongo el branch `feat/feat-NNN-<slug>`. ¿Lo usamos o prefieres otro nombre?"
