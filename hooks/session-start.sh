@@ -46,6 +46,18 @@ for ffile in "$PROJECT_ROOT/features/in-progress.md" "$PROJECT_ROOT/features/bac
   fi
 done
 
+# Branch mismatch check: warn if current git branch differs from active feature's Branch field
+BRANCH_WARNING=""
+CURRENT_BRANCH=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || true)
+if [ -n "$CURRENT_BRANCH" ] && [ -f "$PROJECT_ROOT/features/in-progress.md" ]; then
+  ACTIVE_BRANCH=$(grep -m1 '\*\*Branch\*\*:' "$PROJECT_ROOT/features/in-progress.md" \
+    | sed 's/.*\*\*Branch\*\*: *//' | tr -d '[:space:]' || true)
+  if [ -n "$ACTIVE_BRANCH" ] && [ "$ACTIVE_BRANCH" != "none" ] \
+     && [ "$CURRENT_BRANCH" != "$ACTIVE_BRANCH" ]; then
+    BRANCH_WARNING="⚠️ Estás en branch \`$CURRENT_BRANCH\` pero la feature activa usa \`$ACTIVE_BRANCH\`. Para cambiarte: \`git checkout $ACTIVE_BRANCH\`"
+  fi
+fi
+
 # Build the additionalContext string
 CONTEXT="<EXTREMELY_IMPORTANT>
 ${SKILL_CONTENT}
@@ -59,6 +71,13 @@ ${CURRENT_WORK}
 
 ## Active features
 ${ACTIVE_FEATURES}"
+
+if [ -n "$BRANCH_WARNING" ]; then
+  CONTEXT="${CONTEXT}
+
+## Branch warning
+${BRANCH_WARNING}"
+fi
 
 # Emit JSON for Claude Code's additionalContext
 # Use python3 for reliable JSON encoding (always available on macOS)

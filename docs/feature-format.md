@@ -8,6 +8,7 @@
     - **Updated**: YYYY-MM-DD
     - **Spec**: docs/superpowers/specs/<file>.md | none
     - **Plan**: docs/superpowers/plans/<file>.md | none
+    - **Branch**: feat/feat-NNN-<slug>          (none if not yet started)
     - **Verification**: playwright | manual | unit-test | integration-test | none
     - **Verified**: YYYY-MM-DD                 (only when Status: done)
     - **Parent**: FEAT-XXX                     (optional, if this is a sub-feature)
@@ -30,6 +31,8 @@
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
 - To find the next available ID: run `next_feature_id features/` from `scripts/lib/parse-features.sh`.
+- Branch slugs: lowercase title, spaces → hyphens, strip accents and non-alphanumeric characters except hyphens. Example: "JWT Authentication v2" → `feat/feat-007-jwt-authentication-v2`.
+- Features in `backlog.md` always have `Branch: none`. Set it when moving to `in-progress.md`.
 
 ## Movement rules
 
@@ -50,6 +53,7 @@
     - **Updated**: 2026-05-03
     - **Spec**: none
     - **Plan**: none
+    - **Branch**: none
     - **Verification**: manual
 
     ### Subtasks
@@ -68,6 +72,7 @@
     - **Updated**: 2025-11-15
     - **Spec**: docs/superpowers/specs/2025-11-01-auth.md
     - **Plan**: docs/superpowers/plans/2025-11-01-auth.md
+    - **Branch**: feat/feat-007-jwt-authentication
     - **Verification**: playwright
     - **Verified**: 2025-11-15
 
@@ -87,6 +92,7 @@
     - **Created**: 2026-05-03
     - **Updated**: 2026-05-03
     - **Supersedes**: FEAT-007
+    - **Branch**: feat/feat-043-jwt-authentication-v2-oauth-support
     - **Verification**: playwright
 
     ### Subtasks
