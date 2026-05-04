@@ -31,10 +31,35 @@ See `docs/feature-format.md` for the full reference. Minimum required fields:
 
 | From | To | Required condition |
 |---|---|---|
-| backlog.md | in-progress.md | User confirms work starts, or a plan is written |
-| in-progress.md | done.md | ALL subtasks `[x]` AND `Verified` field set with a real date |
+| backlog.md | in-progress.md | User confirms work starts, or a plan is written; AND no active feature in in-progress (or user explicitly overrides WIP warning) |
+| in-progress.md | done.md | ALL subtasks `[x]` AND `Verified` field set with a real date AND user confirms branch merged |
 | in-progress.md | backlog.md | User explicitly defers it (rare) |
 | anything | edit done.md | NEVER. Create new feature with `Supersedes: FEAT-XXX` |
+
+## WIP limit
+
+`features/in-progress.md` must have at most 1 feature at any time.
+
+Before moving any feature from `backlog.md` to `in-progress.md`:
+1. Count `## FEAT-` entries in `features/in-progress.md`.
+2. If count = 0: proceed normally.
+3. If count ≥ 1: emit this warning and wait for explicit confirmation before proceeding:
+
+> "⚠️ Ya tienes FEAT-XXX activa (`<title>`). El harness recomienda terminarla antes de empezar otra. ¿Quieres continuar de todas formas?"
+
+Only move the feature if the user explicitly confirms. If they don't confirm, stop.
+
+## Branch cleanup on done
+
+When ALL subtasks are `[x]` and `Verified:` is about to be set, before writing the entry to `done.md`, emit:
+
+> "Feature lista para cerrar. Antes de moverla a done, ¿ya mergeaste `<Branch value>` a main? Si es así, puedes borrarlo con:
+> ```
+> git branch -d <Branch value>
+> ```
+> Confirma cuando estés listo y la muevo a done."
+
+Wait for user confirmation before writing to `done.md`. If the feature's `Branch:` is `none`, skip this reminder.
 
 ## ID assignment
 
@@ -55,3 +80,5 @@ Append to the feature's `### Notes` section: `Verified <date>: <command run>, ou
 - DO NOT mark `Status: done` without a `Verified:` date. The hook `pre-compact.sh` will flag this.
 - DO NOT delete or rewrite a feature in `done.md`. Append a successor.
 - DO NOT use ambiguous statuses like "almost done" or "WIP". Only `backlog | in_progress | done`.
+- DO NOT move a second feature to in-progress.md without warning the user there is already one active.
+- DO NOT write the entry in done.md without confirming the user has merged and deleted the branch (unless Branch: none).
