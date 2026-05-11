@@ -29,6 +29,12 @@ result=$("$SCRIPT" "$FIXTURE" FEAT-008)
 echo "$result" | grep -q '^branch=none$' || { echo "FAIL branch=none: $result"; exit 1; }
 echo "PASS: extracts branch=none for backlog feature"
 
+# Test 3b: notes field is emitted when ### Notes section is present
+result=$("$SCRIPT" "$FIXTURE" FEAT-007)
+echo "$result" | grep -q '^notes=' || { echo "FAIL notes: expected notes= line for FEAT-007"; echo "$result"; exit 1; }
+echo "$result" | grep -q 'Initial design notes here' || { echo "FAIL notes content: $result"; exit 1; }
+echo "PASS: emits notes field for FEAT-007"
+
 # Test 4: malformed file (missing Branch field) returns non-zero
 TMP=$(mktemp)
 cat > "$TMP" <<'EOF'

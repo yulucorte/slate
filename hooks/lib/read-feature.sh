@@ -23,6 +23,18 @@ awk -v id="$ID" '
     if (capturing_notes && notes != "") print "notes=" notes
     exit
   }
+  found && /^### Notes/ {
+    capturing_notes=1
+    next
+  }
+  found && capturing_notes {
+    if (notes == "") {
+      notes=$0
+    } else {
+      notes=notes "\\n" $0
+    }
+    next
+  }
   found && /^- \*\*Branch\*\*:/ {
     sub(/^- \*\*Branch\*\*: */, "")
     sub(/[[:space:]]*$/, "")
@@ -50,6 +62,7 @@ awk -v id="$ID" '
   }
   END {
     if (!found) exit 1
+    if (capturing_notes && notes != "") print "notes=" notes
   }
 ' "$FILE" > /tmp/read-feature.$$
 rc=$?
