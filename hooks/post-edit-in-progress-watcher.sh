@@ -25,7 +25,8 @@ SNAPSHOT="$PROJECT_ROOT/progress/.in-progress.snapshot"
 IP_FILE="$PROJECT_ROOT/features/in-progress.md"
 
 # Acquire project lock
-HASH=$(echo -n "$PROJECT_ROOT" | shasum | cut -c1-8)
+source "$LIB_DIR/hash-path.sh"
+HASH=$(hash_path "$PROJECT_ROOT")
 LOCKFILE="/tmp/claude-harness-$HASH.lock"
 exec 9>"$LOCKFILE"
 if ! bash "$LIB_DIR/acquire-lock.sh" 5 9; then

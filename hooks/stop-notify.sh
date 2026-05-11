@@ -16,7 +16,8 @@ if [ "$HARNESS_NOTIFY" != "true" ]; then
 fi
 
 # Debounce: hash project root, track last fire time
-HASH=$(echo -n "$PROJECT_ROOT" | shasum | cut -c1-8)
+source "$LIB_DIR/hash-path.sh"
+HASH=$(hash_path "$PROJECT_ROOT")
 STATE="/tmp/claude-harness-last-notify-$HASH"
 NOW=$(date +%s)
 LAST=$(cat "$STATE" 2>/dev/null || echo 0)
