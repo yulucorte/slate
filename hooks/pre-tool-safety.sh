@@ -56,7 +56,10 @@ if [ "$TOOL_NAME" = "Bash" ] && echo "$COMMAND" | grep -qE 'rm[[:space:]]+(-[a-z
 fi
 
 # FORCE_PUSH_MAIN
-if [ "$TOOL_NAME" = "Bash" ] && echo "$COMMAND" | grep -qE 'git[[:space:]]+push[[:space:]]+.*(--force|-f)[[:space:]].*(main|master)'; then
+if [ "$TOOL_NAME" = "Bash" ] && \
+   echo "$COMMAND" | grep -qE '^[[:space:]]*git[[:space:]]+push\b' && \
+   echo "$COMMAND" | grep -qE '(\s|^)(--force|--force-with-lease|-f)\b' && \
+   echo "$COMMAND" | grep -qE '\b(main|master)\b'; then
   check_rule FORCE_PUSH_MAIN "Force-pushing to main/master overwrites shared history."
 fi
 

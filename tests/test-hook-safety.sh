@@ -26,13 +26,21 @@ if ! grep -q "RM_HOME" /tmp/safety-err; then
 fi
 echo "PASS: blocks rm -rf \$HOME with exit 2 + rule ID"
 
-# Test 2: blocks git push --force to main
+# Test 2: blocks git push --force to main (force flag before branch)
 set +e
 echo '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' | bash "$HOOK" 2>/dev/null
 rc=$?
 set -e
 if [ "$rc" -ne 2 ]; then echo "FAIL force push main"; exit 1; fi
 echo "PASS: blocks git push --force to main"
+
+# Test 2b: blocks git push with --force AFTER branch (common ordering)
+set +e
+echo '{"tool_name":"Bash","tool_input":{"command":"git push origin main --force"}}' | bash "$HOOK" 2>/dev/null
+rc=$?
+set -e
+if [ "$rc" -ne 2 ]; then echo "FAIL force push main (post-positioned --force): rc=$rc"; exit 1; fi
+echo "PASS: blocks git push origin main --force (post-positioned)"
 
 # Test 3: blocks edits to .claude-harness/config.sh
 set +e
