@@ -68,9 +68,9 @@ for feat_id in $new_ids; do
     "$LOG" post-edit-done-watcher SUCCESS feature="$feat_id" action=pr-open-invoked
   else
     "$LOG" post-edit-done-watcher INFO feature="$feat_id" action=feature-ready-for-pr cmd="bash scripts/harness/pr-open.sh $feat_id"
-    if [ "$HARNESS_NOTIFY" = "true" ]; then
-      bash "$CLAUDE_PLUGIN_ROOT/hooks/stop-notify.sh" </dev/null || true
-    fi
+    # Note: no inline notification dispatch — the natural Stop hook handles user-facing alerts.
+    # This prevents the done-watcher's "feature ready" event from suppressing the session-end
+    # notification via the shared 30s debounce bucket.
   fi
 done
 
