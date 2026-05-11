@@ -1,0 +1,4 @@
+hooks.log
+hooks.log.*
+.in-progress.snapshot
+.done.snapshot

@@ -35,3 +35,13 @@ This project uses **Superpowers** + **claude-harness**. Both are loaded at sessi
 
 - TODO(user): describe the project's domain in 2 lines.
 - TODO(user): list any project-specific verification commands here.
+
+## Project hooks (claude-harness v0.2.0+)
+
+This project may have `.claude-harness/config.sh` with hook configuration. Notable rules:
+
+- `pre-tool-safety.sh` blocks dangerous git/rm operations. If you see a `[claude-harness:pre-tool-safety] Blocked by rule X` message, do not retry blindly — read the reason and adjust.
+- `HARNESS_AUTO_BRANCH=true` means moving a feature to `in-progress.md` triggers `git switch -c`. Don't manually switch first.
+- `HARNESS_AUTO_PR=true` means moving a feature to `done.md` opens a PR. Make sure the work is committed and verified first.
+
+Logs live at `progress/hooks.log`. If a hook seems to misbehave, invoke the `verify-harness-hooks` skill.

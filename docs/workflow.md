@@ -51,3 +51,29 @@ The SessionStart hook injects everything you need. But if you need more:
 - `progress/history.md` — full changelog. Read the last N lines.
 - `features/in-progress.md` — what's actively being worked on.
 - `progress/subagents/` — full reports from previous subagents.
+
+## Project hooks (v0.2.0+)
+
+Beyond session-level hooks, claude-harness installs a layer of per-edit and per-tool hooks that run deterministically:
+
+- `post-edit-format` — formats edited files (`HARNESS_FORMATTER=prettier|gofmt|ruff|none`)
+- `pre-tool-safety` — blocks `rm -rf $HOME`, force-pushes to main, `git reset --hard`, config edits
+- `stop-notify` — OS notification when Claude finishes (30s debounce)
+- `post-edit-in-progress-watcher` — when `HARNESS_AUTO_BRANCH=true`, creates the git branch as a feature enters in-progress
+- `post-edit-done-watcher` — when `HARNESS_AUTO_PR=true`, opens a PR as a feature lands in done; otherwise just notifies
+
+All behavior controlled by `.claude-harness/config.sh`. Defaults preserve v0.1.0 behavior; opt in deliberately.
+
+### Opting in to PR automation
+
+1. Install `gh` CLI and run `gh auth login`.
+2. Set `HARNESS_AUTO_PR=true` in `.claude-harness/config.sh`.
+3. Optionally set `HARNESS_AUTO_BRANCH=true` to also auto-create branches at feature start.
+4. Invoke the `verify-harness-hooks` skill to confirm everything is green.
+5. From now on: moving a feature to `in-progress.md` may create its branch; moving to `done.md` may open its PR.
+
+After PR approval, run `bash scripts/harness/pr-merge.sh FEAT-NNN` to merge + cleanup. If a PR is rejected, run `bash scripts/harness/rollback-feature.sh FEAT-NNN` to move it back to in-progress with the reviewer comments attached.
+
+### Observability
+
+Every hook invocation that proceeds past the file-skip check logs a line to `progress/hooks.log`. Format: `[YYYY-MM-DD HH:MM:SS] hook-name EVENT_TYPE key=value...`. The file rotates at `HARNESS_LOG_MAX_BYTES` bytes; oldest rotation is gzipped.
