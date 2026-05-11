@@ -21,16 +21,18 @@ if [ -f "$TMPDIR/progress/hooks.log" ] && grep -q "post-edit-format" "$TMPDIR/pr
 fi
 echo "PASS: skips files in features/ silently"
 
-# Test 2: HARNESS_FORMATTER=none → skip with log
+# Test 2: HARNESS_FORMATTER=none → silent skip (no log entry, default config)
 echo 'HARNESS_FORMATTER=none' > "$TMPDIR/.claude-harness/config.sh"
 echo "const x=1" > "$TMPDIR/src/foo.ts"
+# Ensure no pre-existing entry pollutes the check
+rm -f "$TMPDIR/progress/hooks.log"
 echo '{"tool_input":{"file_path":"'"$TMPDIR/src/foo.ts"'"}}' | bash "$HOOK"
-if ! grep -q "SKIP.*reason=formatter-disabled" "$TMPDIR/progress/hooks.log"; then
-  echo "FAIL formatter=none: expected SKIP reason=formatter-disabled in log"
+if [ -f "$TMPDIR/progress/hooks.log" ] && grep -q "post-edit-format" "$TMPDIR/progress/hooks.log"; then
+  echo "FAIL formatter=none: expected NO log entry (silent skip)"
   cat "$TMPDIR/progress/hooks.log" 2>/dev/null
   exit 1
 fi
-echo "PASS: HARNESS_FORMATTER=none skips with log"
+echo "PASS: HARNESS_FORMATTER=none skips silently (no log entry)"
 
 # Test 3: missing formatter binary → log SKIP, exit 0
 echo 'HARNESS_FORMATTER=prettier' > "$TMPDIR/.claude-harness/config.sh"

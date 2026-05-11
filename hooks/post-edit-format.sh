@@ -28,7 +28,7 @@ source "$LIB_DIR/load-config.sh"
 LOG="$LIB_DIR/log-hook-event.sh"
 
 if [ "$HARNESS_FORMATTER" = "none" ]; then
-  "$LOG" post-edit-format SKIP reason=formatter-disabled file="$FILE_PATH"
+  # Silent skip: formatter disabled is the default config; logging would spam.
   exit 0
 fi
 
