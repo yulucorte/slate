@@ -1,5 +1,18 @@
 # Day-to-day workflow
 
+## Prerequisites
+
+claude-harness uses a few standard CLI tools. Install whatever your environment lacks:
+
+| Tool | Required for | macOS install | Linux install |
+|---|---|---|---|
+| `flock` | Concurrency protection in watcher hooks | `brew install flock` | Built-in on most distros (util-linux) |
+| `gh` | PR automation (`HARNESS_AUTO_PR=true`) | `brew install gh` | `apt install gh` / `dnf install gh` |
+| `python3` | PR comment capture in rollback-feature | Built-in | `apt install python3` |
+| `shasum` or `sha1sum` | Project-scoped lockfile hashing | Built-in (`shasum`) | Built-in (`sha1sum`) |
+
+After installation, run the `verify-harness-hooks` skill to check everything is wired correctly.
+
 ## Starting a new project
 
 1. Install the plugin: `git clone ... ~/.claude/plugins/claude-harness`

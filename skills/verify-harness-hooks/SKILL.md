@@ -35,6 +35,7 @@ Run each check below. Report status per check with green (✓), yellow (warning)
 4. **External CLIs (conditional)**
    - If `HARNESS_AUTO_PR=true`: `gh` installed AND `gh auth status` healthy. Otherwise: yellow if not installed.
    - If `HARNESS_FORMATTER=prettier|gofmt|ruff`: corresponding binary in PATH. Otherwise: yellow.
+   - `flock` installed (always required for the watcher hooks). If missing: red, remediation: `brew install flock` (macOS) or check that `util-linux` is installed (Linux).
 
 5. **Log state**
    - `progress/hooks.log` exists and is writable. Report size and rotation count.
