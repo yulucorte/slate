@@ -52,6 +52,8 @@ if [ ! -f "$PROJECT_ROOT/.claude-harness/config.sh" ]; then
     sed -i.bak 's/^HARNESS_FORMATTER=.*/HARNESS_FORMATTER=prettier/' "$PROJECT_ROOT/.claude-harness/config.sh" && rm -f "$PROJECT_ROOT/.claude-harness/config.sh.bak"
   elif [ -f "$PROJECT_ROOT/go.mod" ]; then
     sed -i.bak 's/^HARNESS_FORMATTER=.*/HARNESS_FORMATTER=gofmt/' "$PROJECT_ROOT/.claude-harness/config.sh" && rm -f "$PROJECT_ROOT/.claude-harness/config.sh.bak"
+  elif [ -f "$PROJECT_ROOT/pyproject.toml" ] && grep -q 'ruff' "$PROJECT_ROOT/pyproject.toml" 2>/dev/null; then
+    sed -i.bak 's/^HARNESS_FORMATTER=.*/HARNESS_FORMATTER=ruff/' "$PROJECT_ROOT/.claude-harness/config.sh" && rm -f "$PROJECT_ROOT/.claude-harness/config.sh.bak"
   fi
 
   if ! command -v gh >/dev/null 2>&1; then
