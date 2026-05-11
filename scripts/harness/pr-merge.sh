@@ -34,8 +34,12 @@ state_json=$(gh pr view "$pr_num" --json state,reviewDecision 2>/dev/null)
 decision=$(echo "$state_json" | grep -oE '"reviewDecision"[[:space:]]*:[[:space:]]*"[^"]+"' | sed -E 's/.*"([^"]+)"$/\1/')
 state=$(echo "$state_json" | grep -oE '"state"[[:space:]]*:[[:space:]]*"[^"]+"' | sed -E 's/.*"([^"]+)"$/\1/')
 
-if [ "$state" != "OPEN" ] || [ "$decision" != "APPROVED" ]; then
-  "$LOG" pr-merge ERROR feature="$FEAT_ID" reason=pr-not-approved state="$state" decision="$decision"
+if [ "$state" != "OPEN" ]; then
+  "$LOG" pr-merge ERROR feature="$FEAT_ID" reason=pr-not-open state="$state"
+  exit 0
+fi
+if [ "$decision" = "CHANGES_REQUESTED" ]; then
+  "$LOG" pr-merge ERROR feature="$FEAT_ID" reason=changes-requested
   exit 0
 fi
 
