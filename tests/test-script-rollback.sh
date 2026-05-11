@@ -43,5 +43,22 @@ if ! grep -q "Please add tests" "$TMPDIR/features/in-progress.md"; then
 fi
 echo "PASS: rollback moves feature + appends review comments"
 
+# Test 2: no duplicate ### Notes when feature already has one
+heading_count=$(grep -c '^### Notes' "$TMPDIR/features/in-progress.md")
+if [ "$heading_count" -ne 1 ]; then
+  echo "FAIL: expected 1 '### Notes' heading, got $heading_count"
+  grep -n '^### Notes' "$TMPDIR/features/in-progress.md"
+  exit 1
+fi
+echo "PASS: no duplicate Notes heading"
+
+# Test 3: existing notes content preserved
+if ! grep -q "Initial design notes here" "$TMPDIR/features/in-progress.md"; then
+  echo "FAIL: original notes content should be preserved"
+  cat "$TMPDIR/features/in-progress.md"
+  exit 1
+fi
+echo "PASS: original notes content preserved"
+
 rm -rf "$TMPDIR" "$MOCK"
 echo "All rollback tests passed."

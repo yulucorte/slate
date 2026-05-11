@@ -52,13 +52,24 @@ except Exception:
   fi
 fi
 
-# Append Notes block to entry
+# Append reviewer feedback to the feature's Notes section. If the entry already has
+# a "### Notes" section, append into it. Otherwise create a new one.
 if [ -n "$comments" ]; then
-  ENTRY="$ENTRY
+  FEEDBACK="Reviewer feedback (rolled back $(date '+%Y-%m-%d')):
+$comments"
+
+  if echo "$ENTRY" | grep -q '^### Notes[[:space:]]*$'; then
+    # Existing Notes section: insert feedback at the end of the entry (preserving order)
+    ENTRY="$ENTRY
+
+$FEEDBACK"
+  else
+    # No Notes section yet: create one
+    ENTRY="$ENTRY
 
 ### Notes
-Reviewer feedback (rolled back $(date '+%Y-%m-%d')):
-$comments"
+$FEEDBACK"
+  fi
 fi
 
 # Remove from done.md
