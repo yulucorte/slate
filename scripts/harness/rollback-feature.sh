@@ -34,8 +34,11 @@ comments=""
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && [ -n "$branch" ]; then
   pr_num=$(gh pr list --head "$branch" --state all --json number 2>/dev/null | grep -oE '"number"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 | grep -oE '[0-9]+')
   if [ -n "$pr_num" ]; then
-    raw=$(gh pr view "$pr_num" --json comments 2>/dev/null || echo "")
-    comments=$(echo "$raw" | python3 -c '
+    if ! command -v python3 >/dev/null 2>&1; then
+      "$LOG" rollback-feature WARNING feature="$FEAT_ID" reason=python3-missing remediation="install python3 to capture PR comments in Notes"
+    else
+      raw=$(gh pr view "$pr_num" --json comments 2>/dev/null || echo "")
+      comments=$(echo "$raw" | python3 -c '
 import json, sys
 try:
   data = json.load(sys.stdin)
@@ -45,6 +48,7 @@ try:
 except Exception:
   pass
 ' 2>/dev/null || true)
+    fi
   fi
 fi
 
