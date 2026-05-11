@@ -27,6 +27,16 @@ description: Use when the user opens a session in a project that lacks progress/
 - Runs project-specific tests if present (npm test, pytest, cargo test — auto-detected).
 - Exits 0 if env is healthy, non-zero if blocked.
 
+## Detecting v0.1.0 → v0.2.0 upgrades
+
+If `progress/` and `features/` already exist (project was scaffolded under v0.1.0) but `.claude-harness/config.sh` does NOT exist:
+
+1. Tell the user: "claude-harness v0.2.0 introduces a project hooks layer (formatter, safety, notifications, optional PR automation). The config file `.claude-harness/config.sh` is missing. Should I create it now with safe defaults?"
+2. If the user agrees: run `bash $CLAUDE_PLUGIN_ROOT/scripts/install-into-project.sh` — it is idempotent and will only add the new pieces.
+3. If declined: skip silently. The new hooks behave as no-ops without config (defaults are baked-in).
+
+Do NOT auto-create config.sh without consent — the user may be on v0.1.0 deliberately.
+
 ## Anti-patterns
 
 - DO NOT overwrite existing files in the user's project under any circumstance.
