@@ -22,15 +22,13 @@ HOOK_PATH="$CLAUDE_PLUGIN_ROOT/hooks/pre-tool-safety.sh"
 
 emit_block() {
   local rule_id="$1" reason="$2" allow_var="HARNESS_ALLOW_$1"
+  bash "$LIB_DIR/emit-status.sh" block pre-tool-safety "blocked $rule_id: $reason" tool="$TOOL_NAME"
   cat >&2 <<EOF
-[claude-harness:pre-tool-safety] Blocked by rule $rule_id.
-Reason: $reason
-Escape hatches (least → most invasive):
-  1. Allow this rule:    $allow_var=true in .claude-harness/config.sh
-  2. Disable category:   HARNESS_SAFETY_RULES=permissive
-  3. Disable hook:       chmod -x $HOOK_PATH
+  Override options:
+    1. Allow this rule:    $allow_var=true in .claude-harness/config.sh
+    2. Disable category:   HARNESS_SAFETY_RULES=permissive
+    3. Disable hook:       chmod -x $HOOK_PATH
 EOF
-  "$LOG" pre-tool-safety BLOCK rule="$rule_id" tool="$TOOL_NAME"
   exit 2
 }
 

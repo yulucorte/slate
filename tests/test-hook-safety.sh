@@ -78,5 +78,22 @@ echo 'HARNESS_SAFETY_RULES=strict' > "$TMPDIR/.claude-harness/config.sh"
 echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash "$HOOK"
 echo "PASS: safe command passes"
 
+# Test 7: BLOCK output uses ✗ harness: prefix (emit-status format)
+rm -f "$TMPDIR/.claude-harness/config.sh"
+set +e
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf $HOME/foo"}}' | bash "$HOOK" 2>/tmp/safety-err
+rc=$?
+set -e
+if [ "$rc" -ne 2 ]; then
+  echo "FAIL emit-status prefix: expected exit 2, got $rc"
+  exit 1
+fi
+if ! grep -q "✗ harness:" /tmp/safety-err; then
+  echo "FAIL emit-status prefix: expected '✗ harness:' in stderr"
+  cat /tmp/safety-err
+  exit 1
+fi
+echo "PASS: BLOCK output uses ✗ harness: prefix"
+
 rm -rf "$TMPDIR"
 echo "All pre-tool-safety tests passed."
