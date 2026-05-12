@@ -20,6 +20,7 @@ esac
 # shellcheck source=lib/load-config.sh
 source "$LIB_DIR/load-config.sh"
 LOG="$LIB_DIR/log-hook-event.sh"
+EMIT="$LIB_DIR/emit-status.sh"
 
 SNAPSHOT="$PROJECT_ROOT/progress/.done.snapshot"
 DONE_FILE="$PROJECT_ROOT/features/done.md"
@@ -53,21 +54,24 @@ current_branch=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || ech
 for feat_id in $new_ids; do
   [ -z "$feat_id" ] && continue
   parse=$(bash "$LIB_DIR/read-feature.sh" "$DONE_FILE" "$feat_id" 2>/dev/null) || {
-    "$LOG" post-edit-done-watcher ERROR feature="$feat_id" reason=parse-failed
+    bash "$EMIT" warn post-edit-done-watcher "feature $feat_id could not be parsed in done.md" feature="$feat_id" reason=parse-failed
     continue
   }
   branch=$(echo "$parse" | grep '^branch=' | cut -d= -f2-)
 
   if [ -n "$current_branch" ] && [ -n "$branch" ] && [ "$branch" != "none" ] && [ "$current_branch" != "$branch" ]; then
-    "$LOG" post-edit-done-watcher WARNING reason=branch-mismatch feature="$feat_id" current="$current_branch" expected="$branch"
+    bash "$EMIT" warn post-edit-done-watcher "$feat_id marked done but current branch is $current_branch (expected $branch); skipping" feature="$feat_id" reason=branch-mismatch current="$current_branch" expected="$branch"
     continue
   fi
 
   if [ "$HARNESS_AUTO_PR" = "true" ]; then
-    bash "$CLAUDE_PLUGIN_ROOT/scripts/harness/pr-open.sh" "$feat_id"
-    "$LOG" post-edit-done-watcher SUCCESS feature="$feat_id" action=pr-open-invoked
+    if bash "$CLAUDE_PLUGIN_ROOT/scripts/harness/pr-open.sh" "$feat_id" 2>/dev/null; then
+      bash "$EMIT" ok post-edit-done-watcher "PR opened for $feat_id" feature="$feat_id" action=pr-open-invoked
+    else
+      bash "$EMIT" warn post-edit-done-watcher "PR open failed for $feat_id — run harness-doctor to diagnose" feature="$feat_id" action=pr-open-failed
+    fi
   else
-    "$LOG" post-edit-done-watcher INFO feature="$feat_id" action=feature-ready-for-pr cmd="bash scripts/harness/pr-open.sh $feat_id"
+    bash "$EMIT" suggest post-edit-done-watcher "$feat_id ready for PR — invoke harness-open-pr skill or run: bash scripts/harness/pr-open.sh $feat_id" feature="$feat_id" action=feature-ready-for-pr cmd="bash scripts/harness/pr-open.sh $feat_id"
     # Note: no inline notification dispatch — the natural Stop hook handles user-facing alerts.
     # This prevents the done-watcher's "feature ready" event from suppressing the session-end
     # notification via the shared 30s debounce bucket.

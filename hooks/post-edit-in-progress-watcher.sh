@@ -20,6 +20,7 @@ esac
 # shellcheck source=lib/load-config.sh
 source "$LIB_DIR/load-config.sh"
 LOG="$LIB_DIR/log-hook-event.sh"
+EMIT="$LIB_DIR/emit-status.sh"
 
 SNAPSHOT="$PROJECT_ROOT/progress/.in-progress.snapshot"
 IP_FILE="$PROJECT_ROOT/features/in-progress.md"
@@ -49,25 +50,25 @@ new_ids=$(comm -23 <(echo "$current_ids" | sort -u) <(echo "$prev_ids" | sort -u
 for feat_id in $new_ids; do
   [ -z "$feat_id" ] && continue
   parse=$(bash "$LIB_DIR/read-feature.sh" "$IP_FILE" "$feat_id" 2>/dev/null) || {
-    "$LOG" post-edit-in-progress-watcher ERROR feature="$feat_id" reason=branch-field-invalid
+    bash "$EMIT" warn post-edit-in-progress-watcher "feature $feat_id has invalid Branch: field" feature="$feat_id" reason=branch-field-invalid
     continue
   }
   branch=$(echo "$parse" | grep '^branch=' | cut -d= -f2-)
   if [ -z "$branch" ] || [ "$branch" = "none" ]; then
-    "$LOG" post-edit-in-progress-watcher ERROR feature="$feat_id" reason=branch-missing-or-none
+    bash "$EMIT" warn post-edit-in-progress-watcher "feature $feat_id has no Branch: field — add one to enable auto-branch" feature="$feat_id" reason=branch-missing-or-none
     continue
   fi
 
   if [ "$HARNESS_AUTO_BRANCH" = "true" ]; then
     if git -C "$PROJECT_ROOT" switch -c "$branch" 2>/dev/null; then
-      "$LOG" post-edit-in-progress-watcher SUCCESS feature="$feat_id" branch="$branch" action=switched
+      bash "$EMIT" ok post-edit-in-progress-watcher "branch $branch created for $feat_id" feature="$feat_id" branch="$branch" action=switched
     elif git -C "$PROJECT_ROOT" switch "$branch" 2>/dev/null; then
-      "$LOG" post-edit-in-progress-watcher SUCCESS feature="$feat_id" branch="$branch" action=already-existed-switched
+      bash "$EMIT" ok post-edit-in-progress-watcher "switched to existing branch $branch for $feat_id" feature="$feat_id" branch="$branch" action=already-existed-switched
     else
-      "$LOG" post-edit-in-progress-watcher ERROR feature="$feat_id" branch="$branch" reason=git-switch-failed
+      bash "$EMIT" block post-edit-in-progress-watcher "could not switch to $branch (uncommitted changes?)" feature="$feat_id" branch="$branch" reason=git-switch-failed
     fi
   else
-    "$LOG" post-edit-in-progress-watcher INFO feature="$feat_id" action=manual-branch-suggested cmd="git switch -c $branch"
+    bash "$EMIT" suggest post-edit-in-progress-watcher "$feat_id ready — run: git switch -c $branch (or invoke harness-create-branch skill)" feature="$feat_id" branch="$branch" action=manual-branch-suggested cmd="git switch -c $branch"
   fi
 done
 
