@@ -22,7 +22,7 @@ HOOK_PATH="$CLAUDE_PLUGIN_ROOT/hooks/pre-tool-safety.sh"
 
 emit_block() {
   local rule_id="$1" reason="$2" allow_var="HARNESS_ALLOW_$1"
-  bash "$LIB_DIR/emit-status.sh" block pre-tool-safety "blocked $rule_id: $reason" tool="$TOOL_NAME"
+  bash "$LIB_DIR/emit-status.sh" block pre-tool-safety "blocked $rule_id: $reason" rule="$rule_id" tool="$TOOL_NAME"
   cat >&2 <<EOF
   Override options:
     1. Allow this rule:    $allow_var=true in .claude-harness/config.sh

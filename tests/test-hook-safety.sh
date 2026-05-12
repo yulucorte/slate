@@ -95,5 +95,21 @@ if ! grep -q "✗ harness:" /tmp/safety-err; then
 fi
 echo "PASS: BLOCK output uses ✗ harness: prefix"
 
+# Test 8: BLOCK log line contains structured rule= key
+set +e
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf $HOME/foo"}}' | bash "$HOOK" 2>/dev/null
+rc=$?
+set -e
+if [ "$rc" -ne 2 ]; then
+  echo "FAIL structured rule= key: expected exit 2, got $rc"
+  exit 1
+fi
+if ! grep -q 'rule=RM_HOME' "$TMPDIR/progress/hooks.log"; then
+  echo "FAIL structured rule= key: expected 'rule=RM_HOME' in $TMPDIR/progress/hooks.log"
+  cat "$TMPDIR/progress/hooks.log"
+  exit 1
+fi
+echo "PASS: BLOCK log line contains structured rule=RM_HOME key"
+
 rm -rf "$TMPDIR"
 echo "All pre-tool-safety tests passed."
