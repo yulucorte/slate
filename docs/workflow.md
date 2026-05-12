@@ -90,3 +90,16 @@ After PR approval, run `bash scripts/harness/pr-merge.sh FEAT-NNN` to merge + cl
 ### Observability
 
 Every hook invocation that proceeds past the file-skip check logs a line to `progress/hooks.log`. Format: `[YYYY-MM-DD HH:MM:SS] hook-name EVENT_TYPE key=value...`. The file rotates at `HARNESS_LOG_MAX_BYTES` bytes; oldest rotation is gzipped.
+
+## When something looks wrong
+
+If a hook seems to misbehave, or you're not sure whether your install is healthy:
+
+- Ask Claude to "diagnose harness" or "run harness doctor" — the `harness-doctor` skill runs `scripts/harness/doctor.sh` and walks you through each fix.
+- Tail the log: `tail -f progress/hooks.log`
+- Check the most recent hook events: `tail -30 progress/hooks.log`
+
+If a watcher printed `→ harness: FEAT-X ready ...` but nothing happened, that's expected when `HARNESS_AUTO_BRANCH=false` or `HARNESS_AUTO_PR=false` (defaults). Ask Claude to run the suggested skill:
+
+- `harness-create-branch` — creates the branch for a feature in `in-progress.md`
+- `harness-open-pr` — opens the PR for a feature in `done.md`

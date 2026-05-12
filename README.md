@@ -37,6 +37,9 @@ See [docs/installation.md](docs/installation.md) for full details.
 | `scaffolding-environment` | Initializes a project that hasn't been set up yet |
 | `handing-off-session` | Drains `current.md` into `history.md` at session end |
 | `breaking-down-features` | Translates plans into FEAT-XXX entries |
+| `harness-doctor` | Diagnoses install state and prints concrete fix commands for any failed check |
+| `harness-open-pr` | Manually triggers `pr-open.sh` for a feature when `HARNESS_AUTO_PR=false` |
+| `harness-create-branch` | Manually creates the git branch declared in a feature's `Branch:` field when `HARNESS_AUTO_BRANCH=false` |
 
 ### Hooks
 

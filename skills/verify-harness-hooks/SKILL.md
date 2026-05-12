@@ -14,6 +14,8 @@ This skill produces a table of green/yellow/red checks for the project's hooks i
 - After upgrading claude-harness
 - Before enabling `HARNESS_AUTO_PR=true` or `HARNESS_AUTO_BRANCH=true`
 
+> **Want fix commands, not just a status table?** Invoke the `harness-doctor` skill instead — it runs the same checks plus prints `Fix:` lines.
+
 ## What to check
 
 Run each check below. Report status per check with green (✓), yellow (warning), or red (✗). Include the remediation command for any non-green check.
