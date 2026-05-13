@@ -27,7 +27,7 @@ See [docs/installation.md](docs/installation.md) for full details.
 
 ## What it adds
 
-For a deeper architectural snapshot (state, file roles, dependencies, gaps), see [docs/STATE-OF-HARNESS.md](docs/STATE-OF-HARNESS.md).
+For a deeper architectural snapshot (state, file roles, dependencies, gaps), see [docs/STATE-OF-HARNESS.md](docs/STATE-OF-HARNESS.md). A diagram of the plugin/user-project split lives in [docs/assets/claude-harness-overview.excalidraw](docs/assets/claude-harness-overview.excalidraw) (Excalidraw source — open with <https://excalidraw.com> to view); the ASCII reproduction is in [STATE-OF-HARNESS.md §2](docs/STATE-OF-HARNESS.md#2-architecture-ascii). See [docs/contributing.md](docs/contributing.md#regenerating-the-architecture-diagram) for how to regenerate it.
 
 ### Skills (10)
 

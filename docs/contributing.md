@@ -12,13 +12,19 @@ claude-harness is intentionally small. Before opening a PR, please:
 
 ### Regenerating the architecture diagram
 
-The architecture diagram lives in [docs/assets/claude-harness-overview.excalidraw](assets/claude-harness-overview.excalidraw) (Excalidraw source) and is the canonical sketch behind the ASCII reproduction in [docs/STATE-OF-HARNESS.md §2](STATE-OF-HARNESS.md#2-architecture-ascii).
+The architecture diagram has two source files in [docs/assets/](assets/):
 
-To export the `.excalidraw` file to SVG/PNG without installing anything globally:
+- [`claude-harness-overview.json`](assets/claude-harness-overview.json) — a hand-written element spec consumed by `excalidraw-cli create`.
+- [`claude-harness-overview.excalidraw`](assets/claude-harness-overview.excalidraw) — the regenerated Excalidraw scene (canonical), and the source behind the ASCII reproduction in [docs/STATE-OF-HARNESS.md §2](STATE-OF-HARNESS.md#2-architecture-ascii).
+
+To rebuild the `.excalidraw` after editing the `.json` spec:
 
 ```bash
-npx excalidraw-cli@^0.0.2 docs/assets/claude-harness-overview.excalidraw \
-    --output docs/assets/claude-harness-overview.svg
+npx --yes excalidraw-cli@0.0.2 create \
+    --input docs/assets/claude-harness-overview.json \
+    --output docs/assets/claude-harness-overview.excalidraw
 ```
 
-(claude-harness itself has no Node dependencies — there is no `package.json` in the repo. `excalidraw-cli` is only mentioned here as an optional one-off tool for contributors who want to regenerate the diagram.)
+claude-harness has no Node dependencies (no `package.json` in the repo); `excalidraw-cli` is only mentioned here as an optional one-off tool for contributors who want to regenerate the diagram.
+
+TODO: `excalidraw-cli@0.0.2` does not export to SVG/PNG — it only builds `.excalidraw` scenes from JSON specs. To produce a rasterized/vector image, open the `.excalidraw` file in <https://excalidraw.com> and export from there (File → Export image…), or use a different CLI (e.g. `excalidraw-mcp`). When a settled tool exists, document the export command here.
