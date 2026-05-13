@@ -66,6 +66,8 @@ When ALL subtasks are `[x]` and `Verified:` is about to be set, before writing t
 
 Wait for user confirmation before writing to `done.md`. If the feature's `Branch:` is `none`, skip this reminder.
 
+**Exception when `HARNESS_AUTO_PR=true`**: in that mode the flow is _done.md → post-edit-done-watcher → PR opened automatically → user merges and deletes the branch on the GitHub side_, i.e. the merge happens **after** the entry lands in `done.md`. Skip the "ya mergeaste" prompt; instead emit a one-line heads-up that the watcher will open the PR on the next edit. The `harness-open-pr` skill follows the same post-done flow when invoked manually.
+
 ## ID assignment
 
 - Read all three files, find the highest existing FEAT-NNN, assign FEAT-NNN+1.
