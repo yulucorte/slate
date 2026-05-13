@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 — 2026-05-13
+
+### Added
+- `consulting-project-map` skill — loaded at SessionStart when `docs/project-map.md` exists. Read-only: surfaces the project's vision, current phase, exit criteria, and ADR conventions without inventing or editing them.
+- Template `docs/project-map.md` — single-source-of-truth Markdown for vision, current phase, exit criteria, future phases, and product areas. Installed once per project, idempotent.
+- Template `docs/architecture-decisions/README.md` — documents the append-only ADR format (Status / Context / Decision / Consequences, `Supersedes:` for replacements).
+- `pre-tool-safety.sh` rule **ADR_EDIT** — blocks Edit/Write/MultiEdit on `docs/architecture-decisions/ADR-*.md` files whose `Status: Accepted` line is present. Permits creating new ADRs (file does not yet exist) and the exact `Status: Accepted` → `Status: Superseded` transition (Edit tool, single-line replacement). Override with `HARNESS_ALLOW_ADR_EDIT=true`.
+- `HARNESS_ALLOW_ADR_EDIT=false` default in `hooks/lib/defaults.sh` and the seeded `.claude-harness/config.sh` template.
+- `session-start.sh` now injects `docs/project-map.md` (first 200 lines) into `additionalContext` under a `project_map` marker, alongside the `using-claude-harness` skill body. Nothing is added when the file is absent.
+- Tests: `test-install-v04.sh` (template copy + idempotency), `test-hook-safety-adr.sh` (4 ADR cases + allow override), `test-session-start-project-map.sh` (presence/absence + JSON shape).
+
+### Notes
+- No agents were added. ADRs replace the "architect" role; humans write them, Claude reads them on demand.
+- Only `project-map.md` is injected at SessionStart. ADRs are read on demand to keep context small.
+
 ## 0.3.0 — 2026-05-11
 
 ### Added
@@ -30,6 +45,6 @@
 ### Compatibility
 - All defaults preserve v0.1.0 behavior. New automations (`HARNESS_AUTO_BRANCH`, `HARNESS_AUTO_PR`) are opt-in.
 
-## v0.1.0 (unreleased)
+## 0.1.0 — 2026-05-03
 
 Initial release.

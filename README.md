@@ -29,7 +29,7 @@ See [docs/installation.md](docs/installation.md) for full details.
 
 For a deeper architectural snapshot (state, file roles, dependencies, gaps), see [docs/STATE-OF-HARNESS.md](docs/STATE-OF-HARNESS.md). A diagram of the plugin/user-project split lives in [docs/assets/claude-harness-overview.excalidraw](docs/assets/claude-harness-overview.excalidraw) (Excalidraw source — open with <https://excalidraw.com> to view); the ASCII reproduction is in [STATE-OF-HARNESS.md §2](docs/STATE-OF-HARNESS.md#2-architecture-ascii). See [docs/contributing.md](docs/contributing.md#regenerating-the-architecture-diagram) for how to regenerate it.
 
-### Skills (10)
+### Skills (11)
 
 | Skill | Trigger |
 |---|---|
@@ -39,6 +39,7 @@ For a deeper architectural snapshot (state, file roles, dependencies, gaps), see
 | `scaffolding-environment` | Session opened in a project that lacks `progress/` or `features/`, or user asks to set up the harness |
 | `handing-off-session` | End of session, before `/clear` or `/compact` — drains `current.md` and writes a session summary |
 | `breaking-down-features` | After a Superpowers plan is approved, or user describes new scope — translates plans into structured `FEAT-XXX` entries with subtasks |
+| `consulting-project-map` | Loaded at SessionStart when `docs/project-map.md` exists — surfaces vision, current phase, exit criteria, and ADR conventions as read-only context |
 | `harness-doctor` | User asks to "diagnose harness", or after install — runs `scripts/harness/doctor.sh` and reports `✓/!/✗` per check |
 | `harness-open-pr` | "Open PR for FEAT-X" when `HARNESS_AUTO_PR=false` — wraps `scripts/harness/pr-open.sh` |
 | `harness-create-branch` | "Create branch for FEAT-X" when `HARNESS_AUTO_BRANCH=false` — reads the feature's `Branch:` field and runs `git switch -c` |
