@@ -9,6 +9,7 @@
     - **Branch**: feat/XXX-slug | none
     - **Spec**: docs/superpowers/specs/<file>.md | none
     - **Plan**: docs/superpowers/plans/<file>.md | none
+    - **Branch**: feat/feat-NNN-<slug>          (none if not yet started)
     - **Verification**: playwright | manual | unit-test | integration-test | none
     - **Verified**: YYYY-MM-DD                 (only when Status: done)
     - **Parent**: FEAT-XXX                     (optional, if this is a sub-feature)
@@ -44,6 +45,8 @@ The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) a
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
 - To find the next available ID: run `next_feature_id features/` from `scripts/lib/parse-features.sh`.
+- Branch slugs: lowercase title, spaces → hyphens, strip accents and non-alphanumeric characters except hyphens. Example: "JWT Authentication v2" → `feat/feat-007-jwt-authentication-v2`.
+- Features in `backlog.md` always have `Branch: none`. Set it when moving to `in-progress.md`.
 
 ## Movement rules
 
@@ -65,6 +68,7 @@ The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) a
     - **Branch**: feat/042-dark-mode
     - **Spec**: none
     - **Plan**: none
+    - **Branch**: none
     - **Verification**: manual
 
     ### Subtasks
@@ -84,6 +88,7 @@ The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) a
     - **Branch**: feat/007-jwt-auth
     - **Spec**: docs/superpowers/specs/2025-11-01-auth.md
     - **Plan**: docs/superpowers/plans/2025-11-01-auth.md
+    - **Branch**: feat/feat-007-jwt-authentication
     - **Verification**: playwright
     - **Verified**: 2025-11-15
 
@@ -104,6 +109,7 @@ The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) a
     - **Updated**: 2026-05-03
     - **Branch**: feat/043-oauth
     - **Supersedes**: FEAT-007
+    - **Branch**: feat/feat-043-jwt-authentication-v2-oauth-support
     - **Verification**: playwright
 
     ### Subtasks

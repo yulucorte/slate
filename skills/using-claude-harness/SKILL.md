@@ -20,7 +20,8 @@ This skill loads at SessionStart in projects that have been initialized with cla
 1. **At session start**: read the SessionStart hook output. It already injected recent history and active features. Do not re-read those files unless you need details beyond what was injected.
 2. **Before dispatching a Superpowers subagent**: invoke `tracking-progress` to log the dispatch.
 3. **Before marking any task as done**: invoke `managing-feature-list` to update the feature's subtask state. A feature only moves to done.md when ALL subtasks are checked AND a verification entry exists.
-4. **At session end**: invoke `handing-off-session` to drain current.md into history.md.
+4. **WIP limit**: `features/in-progress.md` must have at most 1 feature. Before moving backlog → in-progress, count active features and warn if ≥ 1 (see managing-feature-list skill). Before moving in-progress → done, remind user to merge and delete the branch.
+5. **At session end**: invoke `handing-off-session` to drain current.md into history.md.
 
 ## Interop with Superpowers
 
@@ -36,3 +37,6 @@ claude-harness does NOT replace Superpowers. The flow is:
 - DO NOT introduce JSON, YAML, or SQLite alternatives. Markdown is the contract.
 - DO NOT skip `tracking-progress` because "the commit message has it". Commits are too terse for cross-session recovery.
 - DO NOT edit entries in `done.md`. Create a new feature with `Supersedes: FEAT-XXX` instead.
+- DO NOT move a second feature to in-progress.md without warning the user there is already one active.
+- DO NOT write the `Branch:` field without proposing the auto-suggested name and getting user confirmation.
+- DO NOT move a feature to done.md without confirming the user has merged and deleted the branch (unless Branch: none).
