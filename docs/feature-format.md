@@ -6,6 +6,7 @@
     - **Status**: backlog | in_progress | done
     - **Created**: YYYY-MM-DD
     - **Updated**: YYYY-MM-DD
+    - **Branch**: feat/XXX-slug | none
     - **Spec**: docs/superpowers/specs/<file>.md | none
     - **Plan**: docs/superpowers/plans/<file>.md | none
     - **Verification**: playwright | manual | unit-test | integration-test | none
@@ -23,6 +24,19 @@
 
     ### Notes
     <free-form Markdown>
+
+## The `Branch:` field
+
+The `Branch:` field declares the git branch that will carry this feature's commits.
+
+- **Format**: a branch name (e.g. `feat/042-dark-mode`, `fix/auth-redirect`) or the literal string `none`.
+- **`none`** means the feature ships on the current branch — no dedicated branch will be created, and no PR will be opened automatically for it.
+- **When required**: any feature that will go through the watcher hooks must declare `Branch:` — that is, whenever `HARNESS_AUTO_BRANCH=true` (or you intend to use the `harness-create-branch` skill) for in-progress features, or `HARNESS_AUTO_PR=true` (or you intend to use the `harness-open-pr` skill) for done features. In these cases the field is **mandatory**, with `none` as the explicit opt-out.
+- **When optional**: if both `HARNESS_AUTO_BRANCH=false` and `HARNESS_AUTO_PR=false` and you don't plan to use the manual skills, the field may be omitted. It is still recommended for traceability.
+- **What happens if missing**: the watcher hooks (`post-edit-in-progress-watcher.sh`, `post-edit-done-watcher.sh`) emit a yellow `warn` line via `emit-status.sh` (reason `branch-missing-or-none`) and skip the automated action. The `verify-harness-hooks` skill flags such features as yellow. Nothing breaks — the feature simply does not auto-branch or auto-PR.
+- **`done` semantics**: when a feature is moved to `done.md`, the done watcher will only open a PR if the current git branch matches the feature's `Branch:` value. A mismatch produces a `warn` with reason `branch-mismatch`.
+
+The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) and consumed by both watchers, [scripts/harness/pr-open.sh](../scripts/harness/pr-open.sh), and the `harness-create-branch` / `harness-open-pr` skills.
 
 ## ID rules
 
@@ -48,6 +62,7 @@
     - **Status**: backlog
     - **Created**: 2026-05-03
     - **Updated**: 2026-05-03
+    - **Branch**: feat/042-dark-mode
     - **Spec**: none
     - **Plan**: none
     - **Verification**: manual
@@ -66,6 +81,7 @@
     - **Status**: done
     - **Created**: 2025-11-01
     - **Updated**: 2025-11-15
+    - **Branch**: feat/007-jwt-auth
     - **Spec**: docs/superpowers/specs/2025-11-01-auth.md
     - **Plan**: docs/superpowers/plans/2025-11-01-auth.md
     - **Verification**: playwright
@@ -86,6 +102,7 @@
     - **Status**: in_progress
     - **Created**: 2026-05-03
     - **Updated**: 2026-05-03
+    - **Branch**: feat/043-oauth
     - **Supersedes**: FEAT-007
     - **Verification**: playwright
 
@@ -98,8 +115,11 @@
 
     ## FEAT-044: PDF export
     - **Status**: backlog
+    - **Branch**: none
     - **Blocked by**: FEAT-043
     - **Verification**: manual
+
+(`Branch: none` here is an explicit opt-out from auto-branching: this small task will ride on whatever branch picks it up.)
 
     ### Subtasks
     - [ ] FEAT-044.1: Install PDF library
