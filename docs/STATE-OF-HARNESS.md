@@ -1,6 +1,6 @@
 # State of claude-harness
 
-> Snapshot taken on 2026-05-13 against branch `main` at commit `fda2ae7`.
+> Snapshot taken on 2026-05-13 against branch `main` at commit `8a79b1a`.
 > Purpose: let any future Claude instance understand this plugin in 5 minutes.
 > Reading order: this file → `docs/feature-format.md` → `hooks/hooks.json` → `skills/*/SKILL.md`.
 
@@ -12,7 +12,8 @@
 - It ships **10 skills**, **9 hooks** (across 6 events), **7 hook-lib helpers**, **4 harness scripts** (doctor/pr-open/pr-merge/rollback) and **2 generic scripts** (install/self-test).
 - All 20 test suites pass via `bash scripts/self-test.sh`.
 - No Superpowers hard dependency: skills reference Superpowers by name as guidance only — nothing in code requires Superpowers to be loaded.
-- Tags `v0.1.0` (`8a0b191`), `v0.2.0` (`8407de5`), `v0.3.0` (`2af20ad`) exist locally as of this snapshot; `main` is 46 commits ahead of `origin/main` and pending push.
+- Tags `v0.1.0` (`8a0b191`), `v0.2.0` (`8407de5`), `v0.3.0` (`2af20ad`) exist locally as of this snapshot; `main` is 50 commits ahead of `origin/main` and pending push.
+- A non-fast-forward merge (commit `483e660`) integrated PR #1 (`feat/branch-wip-limit`, 10 commits, dated 2026-05-04) into this line. PR #1 added the Branch field model (decided at in-progress transition, default `none` in backlog), the WIP-limit rule (≤1 feature in in-progress), the branch auto-suggest protocol, and a branch-mismatch check in `session-start.sh`. The merge preserved the three tag SHAs.
 
 ---
 
@@ -100,10 +101,10 @@ A higher-fidelity rendering of the same picture lives in [docs/assets/claude-har
 |---|---|---|---|---|
 | [using-claude-harness](../skills/using-claude-harness/SKILL.md) | Session start in a project with `progress/` or `features/` | hook-injected context | — | tracking-progress, managing-feature-list, handing-off-session |
 | [tracking-progress](../skills/tracking-progress/SKILL.md) | Before/after subagent dispatch; TodoWrite completion; "where are we" | `progress/current.md` | `progress/current.md`, `progress/subagents/*.md`, `progress/history.md` | — |
-| [managing-feature-list](../skills/managing-feature-list/SKILL.md) | Defining scope, marking complete, moving features, "what's left" | all `features/*.md` | `features/{backlog,in-progress,done}.md` | — |
+| [managing-feature-list](../skills/managing-feature-list/SKILL.md) | Defining scope, marking complete, moving features, "what's left" | all `features/*.md` | `features/{backlog,in-progress,done}.md` | — (enforces WIP ≤ 1 and branch-cleanup gate; skips the merge prompt when `HARNESS_AUTO_PR=true`) |
 | [scaffolding-environment](../skills/scaffolding-environment/SKILL.md) | Project lacks `progress/`/`features/`; user says "set up harness" | filesystem | — (delegates to install script) | runs `scripts/install-into-project.sh` |
 | [handing-off-session](../skills/handing-off-session/SKILL.md) | End of session; before `/clear` or `/compact`; "we're done for today" | `progress/current.md`, `features/in-progress.md` | `progress/current.md`, `progress/history.md`; `git commit` | — |
-| [breaking-down-features](../skills/breaking-down-features/SKILL.md) | After Superpowers plan approved; new scope described | `docs/superpowers/plans/`, all `features/*.md` | `features/backlog.md` (default) or `in-progress.md` | — |
+| [breaking-down-features](../skills/breaking-down-features/SKILL.md) | After Superpowers plan approved; new scope described | `docs/superpowers/plans/`, all `features/*.md` | `features/backlog.md` (default) or `in-progress.md` | runs the branch auto-suggest protocol (slug derivation + user confirmation) before writing `Branch:` |
 | [harness-doctor](../skills/harness-doctor/SKILL.md) | "diagnose harness", "what's wrong with harness", after install | runs `scripts/harness/doctor.sh` | — | reports back to user, may suggest `harness-doctor` re-run |
 | [harness-open-pr](../skills/harness-open-pr/SKILL.md) | "open PR for FEAT-X" when `HARNESS_AUTO_PR=false` | `features/done.md` | runs `scripts/harness/pr-open.sh` | may invoke harness-doctor on failure |
 | [harness-create-branch](../skills/harness-create-branch/SKILL.md) | "create branch for FEAT-X" when `HARNESS_AUTO_BRANCH=false` | `features/in-progress.md` via `hooks/lib/read-feature.sh` | runs `git switch -c $BRANCH` | — |
@@ -121,7 +122,7 @@ Source of truth: [hooks/hooks.json](../hooks/hooks.json).
 
 | Event | Matcher | Script | What it does | Reads | Writes | Exit semantics |
 |---|---|---|---|---|---|---|
-| SessionStart | `startup\|resume\|clear\|compact` | [session-start.sh](../hooks/session-start.sh) | If project initialized, runs `init.sh`, then emits a JSON `additionalContext` blob with the using-claude-harness skill, last 30 lines of history, current.md, first 10 active features | `progress/`, `features/`, `init.sh`, plugin SKILL.md | appends to `progress/history.md` | always 0 |
+| SessionStart | `startup\|resume\|clear\|compact` | [session-start.sh](../hooks/session-start.sh) | If project initialized, runs `init.sh`, then emits a JSON `additionalContext` blob with the using-claude-harness skill, last 30 lines of history, current.md, first 10 active features. Also injects a `## Branch warning` section when the current git branch differs from the active feature's `Branch:` value | `progress/`, `features/`, `init.sh`, plugin SKILL.md, current git branch | appends to `progress/history.md` | always 0 |
 | SessionEnd | — | [session-end.sh](../hooks/session-end.sh) | Appends non-empty `current.md` to `history.md`, resets `current.md`, auto-commits `progress/` + `features/` | `progress/current.md` | `progress/current.md` (reset), `progress/history.md`, `git commit --allow-empty` | always 0 |
 | PreCompact | `auto\|manual` | [pre-compact.sh](../hooks/pre-compact.sh) | Snapshots `$CLAUDE_TRANSCRIPT_PATH` into `progress/transcripts/<epoch>.snap`, logs compaction event | `$CLAUDE_TRANSCRIPT_PATH` | `progress/transcripts/*.snap`, `progress/history.md` | always 0 |
 | PreToolUse | — (all tools) | [pre-tool-safety.sh](../hooks/pre-tool-safety.sh) | Blocks `rm -rf $HOME`, `git push --force` to main/master, `git reset --hard`, edits to `.claude-harness/config.sh` (4 rules: RM_HOME, FORCE_PUSH_MAIN, RESET_HARD, CONFIG_EDIT). Each rule overrideable via `HARNESS_ALLOW_*=true` or mode `HARNESS_SAFETY_RULES=permissive` | stdin JSON (tool_name, command, file_path), `.claude-harness/config.sh` | `progress/hooks.log` + stderr via `emit-status.sh` | **2 on block** (stderr fed back to Claude), 0 on pass |
@@ -239,21 +240,25 @@ Note: a few suites print `FAIL at line <N>` mid-stream — that comes from each 
 ## 8. Git state
 
 - Branch: `main`
-- Ahead of `origin/main`: **46 commits** (40 from the v0.3.0 work + 6 from the FEAT-009 cleanup that produced this snapshot)
-- Latest commit: `fda2ae7 docs(plans): archive 2026-05-11-nontechnical-gap.md (delivered in v0.3.0)`
-- Tags (local, not yet pushed):
+- Ahead of `origin/main`: **50 commits** (40 from the v0.3.0 work + 7 from the FEAT-009 cleanup + the merge commit + 2 post-merge fix commits)
+- Latest commit: `8a79b1a docs(skill): clarify managing-feature-list cleanup gate under HARNESS_AUTO_PR=true`
+- Backup branch: `backup/pre-merge-FEAT-009` → `711c0c8` (kept locally by user instruction; do not delete until the user signs off on the merged state)
+- Tags (local, not yet pushed — SHAs preserved across the merge):
   - `v0.1.0` → `8a0b191` (`chore: fill author metadata`, 2026-05-03 — last commit in v0.1.0-shipped state)
   - `v0.2.0` → `8407de5` (`chore: bump to v0.2.0 + CHANGELOG`, 2026-05-11)
   - `v0.3.0` → `2af20ad` (`chore(release): bump version to 0.3.0, update docs`, 2026-05-11)
 - Untracked files: only this snapshot (intentional; the file is the output of the snapshot, not state).
-- Last 5 commits give a fair picture of trajectory:
+- Top of history after the integration:
   ```
+  8a79b1a docs(skill): clarify managing-feature-list cleanup gate under HARNESS_AUTO_PR=true
+  e3a7165 fix(schema): deduplicate Branch fields after auto-merge with PR #1
+  483e660 Merge origin/main (PR #1 branch-wip-limit) into FEAT-009 cleanup line. [...]
+  711c0c8 docs(state): regenerate STATE-OF-HARNESS snapshot post-FEAT-009 cleanup
   fda2ae7 docs(plans): archive 2026-05-11-nontechnical-gap.md (delivered in v0.3.0)
   9047415 docs(assets): commit architecture diagram sources to docs/assets/
   3016fe4 chore(versions): drop package.json, move excalidraw-cli to docs/contributing.md
-  39822a9 chore(gitignore): ignore rotated hooks.log and watcher snapshots in plugin repo
-  308191d docs(schema): document Branch: field in canonical feature schema
   ```
+- Note on the merge: `git merge --no-ff` resolved automatically via the `ort` strategy without flagging a conflict in `docs/feature-format.md`, because the two competing `Branch:` insertions sat at different line positions and git treated them as independent hunks. The result was semantically duplicated (two `Branch:` lines per schema/example). Commit `e3a7165` cleans that up by hand per the resolution rules agreed before the merge (PR #1 model wins on schema position, slug format, and the "backlog always `none`" rule; the FEAT-009 "## The Branch: field" section is kept and absorbs the two lines PR #1 had placed under "## ID rules"). Commit `8a79b1a` then patches the only operational tension introduced by the merge: the PR #1 "Branch cleanup on done" gate (which prompts the user to merge BEFORE moving to done.md) does not apply when `HARNESS_AUTO_PR=true`, where the flow is reversed.
 
 ---
 
@@ -280,12 +285,13 @@ Conclusion: claude-harness will install and run alongside Superpowers but does n
 
 ## 10. Gaps, TODOs, inconsistencies
 
-> Diff vs. the previous snapshot (pre-FEAT-009 cleanup, commit `2af20ad`): items §10.1 (README hooks count), §10.2 (README skills count), §10.3 (package.json drift), §10.4 (Branch: field undocumented), §10.5 (untagged releases — now local-only, pending push), §10.6 (plugin's own hooks.log gitignore) **are resolved**. What remains:
+> Diff vs. the previous snapshot (pre-FEAT-009 cleanup, commit `2af20ad`): items §10.1 (README hooks count), §10.2 (README skills count), §10.3 (package.json drift), §10.4 (Branch: field undocumented), §10.5 (untagged releases — now local-only, pending push), §10.6 (plugin's own hooks.log gitignore) **are resolved**. The 10 commits from PR #1 are now integrated; the Branch model documented here is the PR #1 model (decided at in-progress transition, default `none` in backlog) with FEAT-009's v0.3.0-specific semantics layered on top. What remains:
 
 ### Outstanding
 
-1. **Tags + commits not yet pushed.** `main` is 46 commits ahead of `origin/main` and the three release tags are local-only. See `## End — push checklist` for the exact commands.
-2. **`v0.1.0 (unreleased)` line in CHANGELOG**: cosmetic. The tag now exists locally; the CHANGELOG header is left in place for historical accuracy (it really was never released to anyone as v0.1.0 — the tag is retroactive). Decide later whether to rewrite the header to `## 0.1.0 — 2026-05-03` when the tags are pushed.
+1. **Tags + commits not yet pushed.** `main` is 50 commits ahead of `origin/main` and the three release tags are local-only. See `## End — push checklist` for the exact commands.
+2. **`v0.1.0 (unreleased)` line in CHANGELOG**: cosmetic. The tag now exists locally; the CHANGELOG header is left in place for historical accuracy (it really was never released to anyone as v0.1.0 — the tag is retroactive). Decide later whether to rewrite the header to `## 0.1.0 — 2026-05-03` when the tags are pushed (likely bundled into the v0.4.0 CHANGELOG edit per the user's earlier note).
+3. **`backup/pre-merge-FEAT-009` branch**: a safety pointer at `711c0c8` (the state right before the merge with PR #1). Kept locally by user instruction; remove it once the merged state has been pushed and verified.
 
 ### Notable behaviors worth knowing
 
