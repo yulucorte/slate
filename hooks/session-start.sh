@@ -28,6 +28,16 @@ if [ -f "$PLUGIN_ROOT/skills/using-claude-harness/SKILL.md" ]; then
   SKILL_CONTENT=$(cat "$PLUGIN_ROOT/skills/using-claude-harness/SKILL.md" 2>/dev/null || true)
 fi
 
+# Project map (v0.4.0): only loaded if docs/project-map.md exists in the project.
+PROJECT_MAP_CONTENT=""
+CONSULTING_SKILL_CONTENT=""
+if [ -f "$PROJECT_ROOT/docs/project-map.md" ]; then
+  PROJECT_MAP_CONTENT=$(head -200 "$PROJECT_ROOT/docs/project-map.md" 2>/dev/null || true)
+  if [ -f "$PLUGIN_ROOT/skills/consulting-project-map/SKILL.md" ]; then
+    CONSULTING_SKILL_CONTENT=$(cat "$PLUGIN_ROOT/skills/consulting-project-map/SKILL.md" 2>/dev/null || true)
+  fi
+fi
+
 RECENT_HISTORY=""
 if [ -f "$PROJECT_ROOT/progress/history.md" ]; then
   RECENT_HISTORY=$(tail -30 "$PROJECT_ROOT/progress/history.md" 2>/dev/null || true)
@@ -61,7 +71,20 @@ fi
 # Build the additionalContext string
 CONTEXT="<EXTREMELY_IMPORTANT>
 ${SKILL_CONTENT}
-</EXTREMELY_IMPORTANT>
+</EXTREMELY_IMPORTANT>"
+
+if [ -n "$PROJECT_MAP_CONTENT" ]; then
+  CONTEXT="${CONTEXT}
+
+<!-- key: project_map -->
+## Project map (project_map — read-only)
+${CONSULTING_SKILL_CONTENT}
+
+### docs/project-map.md
+${PROJECT_MAP_CONTENT}"
+fi
+
+CONTEXT="${CONTEXT}
 
 ## Recent history
 ${RECENT_HISTORY}

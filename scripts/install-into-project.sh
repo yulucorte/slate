@@ -92,6 +92,11 @@ done
 
 echo "[install-into-project] v0.2.0 hooks installed. Edit .claude-harness/config.sh to opt in to AUTO_BRANCH / AUTO_PR."
 
+# --- v0.4.0: project context layer (project-map + ADRs) ---
+safe_copy "$CLAUDE_PLUGIN_ROOT/templates/docs/project-map.md" "$PROJECT_ROOT/docs/project-map.md"
+safe_copy "$CLAUDE_PLUGIN_ROOT/templates/docs/architecture-decisions/README.md" "$PROJECT_ROOT/docs/architecture-decisions/README.md"
+echo "[install-into-project] v0.4.0 templates installed: docs/project-map.md, docs/architecture-decisions/README.md."
+
 echo ""
 echo "Done. Next steps:"
 echo "  cd $TARGET"

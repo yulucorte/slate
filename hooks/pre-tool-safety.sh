@@ -72,4 +72,19 @@ if { [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" =
   check_rule CONFIG_EDIT "Editing .claude-harness/config.sh changes hook behavior project-wide."
 fi
 
+# ADR_EDIT — Accepted ADRs are append-only. Permits the exact Accepted→Superseded
+# transition (Edit tool, single-line replacement) and allows creating new ADRs.
+if { [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "MultiEdit" ]; } && \
+   echo "$FILE_PATH" | grep -qE 'docs/architecture-decisions/ADR-[^/]+\.md$'; then
+  if [ -f "$FILE_PATH" ] && grep -qE '^Status:[[:space:]]*Accepted[[:space:]]*$' "$FILE_PATH" 2>/dev/null; then
+    OLD_STRING=$(echo "$INPUT" | grep -oE '"old_string"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1 | sed -E 's/.*"old_string"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')
+    NEW_STRING=$(echo "$INPUT" | grep -oE '"new_string"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1 | sed -E 's/.*"new_string"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')
+    if [ "$TOOL_NAME" = "Edit" ] && [ "$OLD_STRING" = "Status: Accepted" ] && [ "$NEW_STRING" = "Status: Superseded" ]; then
+      "$LOG" pre-tool-safety PASS mode=adr-supersede rule=ADR_EDIT tool="$TOOL_NAME"
+    else
+      check_rule ADR_EDIT "ADR is Accepted (append-only). Create a new ADR with Supersedes: ADR-NNN instead, or use HARNESS_ALLOW_ADR_EDIT=true for a typo fix."
+    fi
+  fi
+fi
+
 exit 0
