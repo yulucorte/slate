@@ -1,7 +1,7 @@
 {
   "name": "claude-harness",
   "description": "Markdown-only state, progress and feature tracking layer for Claude Code. Companion to Superpowers.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "Felipe Villacorte",
     "email": "fvilla.emp@gmail.com"
