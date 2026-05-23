@@ -82,5 +82,29 @@ if [ "$unchecked" != "1" ]; then
 fi
 echo "PASS: count_subtasks FEAT-001 unchecked = 1"
 
+# --- Test: check_complete returns INCOMPLETE when any subtask is [ ] ---
+result=$(check_complete "$FIXTURE" "FEAT-001")
+if [ "$result" != "INCOMPLETE" ]; then
+  echo "FAIL check_complete FEAT-001: expected INCOMPLETE, got '$result'"
+  exit 1
+fi
+echo "PASS: check_complete FEAT-001 = INCOMPLETE (subtask 3 unchecked)"
+
+# --- Test: check_complete returns COMPLETE when all subtasks are [x] ---
+result=$(check_complete "$FIXTURE" "FEAT-003")
+if [ "$result" != "COMPLETE" ]; then
+  echo "FAIL check_complete FEAT-003: expected COMPLETE, got '$result'"
+  exit 1
+fi
+echo "PASS: check_complete FEAT-003 = COMPLETE"
+
+# --- Test: check_complete returns UNKNOWN when feature ID not present ---
+result=$(check_complete "$FIXTURE" "FEAT-999")
+if [ "$result" != "UNKNOWN" ]; then
+  echo "FAIL check_complete FEAT-999: expected UNKNOWN, got '$result'"
+  exit 1
+fi
+echo "PASS: check_complete FEAT-999 = UNKNOWN"
+
 echo ""
 echo "All parse-features tests passed."

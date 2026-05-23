@@ -48,6 +48,24 @@ count_subtasks() {
   ' "$1"
 }
 
+# Usage: check_complete <file> <FEAT-XXX>
+# Prints COMPLETE, INCOMPLETE, or UNKNOWN.
+#  - UNKNOWN: feature ID not found in file
+#  - INCOMPLETE: feature has at least one "[ ]" subtask, OR has zero subtasks
+#  - COMPLETE: feature has >=1 "[x]" subtask AND zero "[ ]" subtasks
+check_complete() {
+  local file="$1" id="$2"
+  grep -qE "^## ${id}:" "$file" 2>/dev/null || { echo "UNKNOWN"; return; }
+  local checked unchecked
+  checked=$(count_subtasks "$file" "$id" "[x]")
+  unchecked=$(count_subtasks "$file" "$id" "[ ]")
+  if [ "${unchecked:-0}" -gt 0 ] || [ "${checked:-0}" -eq 0 ]; then
+    echo "INCOMPLETE"
+  else
+    echo "COMPLETE"
+  fi
+}
+
 # If sourced, expose functions; if executed, print usage hint.
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
   echo "This is a library. Source it: source $(basename "$0")"
