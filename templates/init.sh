@@ -169,6 +169,93 @@ _generate_codebase_map() {
 }
 _generate_codebase_map
 
+# 6. Environment report (informational, non-blocking)
+_env_report() {
+  echo "[init.sh] Environment report"
+  echo "  --------------------------------"
+
+  local has_py has_ts has_js has_rs has_go has_node
+  has_py=$(find . -maxdepth 4 -type f -name '*.py'  -not -path '*/.venv/*' -not -path '*/venv/*' 2>/dev/null | head -1)
+  has_ts=$(find . -maxdepth 4 -type f \( -name '*.ts' -o -name '*.tsx' \) -not -path '*/node_modules/*' 2>/dev/null | head -1)
+  has_js=$(find . -maxdepth 4 -type f \( -name '*.js' -o -name '*.jsx' \) -not -path '*/node_modules/*' 2>/dev/null | head -1)
+  has_rs=$(find . -maxdepth 4 -type f -name '*.rs' -not -path '*/target/*' 2>/dev/null | head -1)
+  has_go=$(find . -maxdepth 4 -type f -name '*.go' 2>/dev/null | head -1)
+  has_node=""
+  [ -f package.json ] && has_node="yes"
+
+  local detected=""
+  [ -n "$has_py" ] && detected="${detected}Python "
+  [ -n "$has_ts" ] && detected="${detected}TypeScript "
+  [ -n "$has_js" ] && detected="${detected}JavaScript "
+  [ -n "$has_rs" ] && detected="${detected}Rust "
+  [ -n "$has_go" ] && detected="${detected}Go "
+  [ -n "$has_node" ] && detected="${detected}Node "
+  echo "  languages: ${detected:-none detected}"
+
+  local runners=""
+  if [ -f package.json ] && grep -q '"test"' package.json 2>/dev/null; then
+    runners="${runners}npm-test "
+  fi
+  if [ -f pytest.ini ] || { [ -f pyproject.toml ] && grep -q 'pytest' pyproject.toml 2>/dev/null; } || [ -f setup.cfg ]; then
+    runners="${runners}pytest "
+  fi
+  if [ -f Makefile ] && grep -qE '^test:' Makefile 2>/dev/null; then
+    runners="${runners}make-test "
+  fi
+  if [ -f Cargo.toml ]; then
+    runners="${runners}cargo-test "
+  fi
+  if [ -f go.mod ]; then
+    runners="${runners}go-test "
+  fi
+  echo "  test runners: ${runners:-none detected}"
+
+  local lsp=""
+  [ -f .vscode/settings.json ]   && lsp="${lsp}vscode "
+  [ -f pyrightconfig.json ]      && lsp="${lsp}pyright "
+  [ -f tsconfig.json ]           && lsp="${lsp}tsconfig "
+  ls .eslintrc* 2>/dev/null | head -1 >/dev/null 2>&1 && lsp="${lsp}eslint "
+  [ -f compile_commands.json ]   && lsp="${lsp}clangd "
+  echo "  lsp/lint configs: ${lsp:-none detected}"
+
+  local ci=""
+  [ -d .github/workflows ]       && ci="${ci}github-actions "
+  [ -f .gitlab-ci.yml ]          && ci="${ci}gitlab "
+  [ -f Jenkinsfile ]             && ci="${ci}jenkins "
+  echo "  ci/cd: ${ci:-none detected}"
+
+  if [ -n "$has_py" ]; then
+    if [ ! -f pyrightconfig.json ] && [ ! -f .vscode/settings.json ] && [ ! -f pyproject.toml ]; then
+      echo "  ⚠ Python detected but no pyrightconfig.json / .vscode / pyproject.toml — LSP may not work"
+    fi
+    if ! echo "$runners" | grep -q 'pytest'; then
+      echo "  ⚠ Python detected but no pytest config found"
+    fi
+  fi
+  if [ -n "$has_ts" ]; then
+    if [ ! -f tsconfig.json ]; then
+      echo "  ⚠ TypeScript detected but no tsconfig.json — LSP may not work"
+    fi
+    if [ -n "$has_node" ] && ! grep -q '"test"' package.json 2>/dev/null; then
+      echo "  ⚠ TypeScript detected but no test script found in package.json"
+    fi
+  fi
+  if [ -n "$has_js" ] && [ -n "$has_node" ]; then
+    if ! grep -q '"test"' package.json 2>/dev/null; then
+      echo "  ⚠ JavaScript detected but no test script in package.json"
+    fi
+  fi
+  if [ -n "$has_rs" ] && [ ! -f Cargo.toml ]; then
+    echo "  ⚠ Rust source detected but no Cargo.toml"
+  fi
+  if [ -n "$has_go" ] && [ ! -f go.mod ]; then
+    echo "  ⚠ Go source detected but no go.mod"
+  fi
+
+  echo "  --------------------------------"
+}
+_env_report
+
 # 4. Smoke test (non-blocking)
 if [ -f package.json ] && command -v npm >/dev/null 2>&1; then
   echo "[init.sh] running npm test (60s timeout)..."
