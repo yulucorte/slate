@@ -97,6 +97,55 @@ safe_copy "$CLAUDE_PLUGIN_ROOT/templates/docs/project-map.md" "$PROJECT_ROOT/doc
 safe_copy "$CLAUDE_PLUGIN_ROOT/templates/docs/architecture-decisions/README.md" "$PROJECT_ROOT/docs/architecture-decisions/README.md"
 echo "[install-into-project] v0.4.0 templates installed: docs/project-map.md, docs/architecture-decisions/README.md."
 
+# --- v0.5.0: inject claude-harness protocol block into CLAUDE.md ---
+_inject_claude_md() {
+  local target="$PROJECT_ROOT/CLAUDE.md"
+  if [ -f "$PROJECT_ROOT/claude.md" ] && [ ! -f "$PROJECT_ROOT/CLAUDE.md" ]; then
+    target="$PROJECT_ROOT/claude.md"
+  fi
+
+  local block
+  IFS='' read -r -d '' block <<'BLOCK' || true
+<!-- claude-harness -->
+## Claude Harness Protocol
+
+This project uses [claude-harness](https://github.com/yulucorte/claude-harness) for persistent state and feature tracking.
+
+**At session start:**
+1. Run `init.sh` and verify it passes.
+2. Read `progress/current.md` for in-flight work from previous sessions.
+3. Read `progress/codebase-map.md` for project structure overview.
+4. Read `features/in-progress.md` for active features.
+5. Check `features/backlog.md` for pending work if no active features.
+
+**During work:**
+- Update `progress/current.md` with what you're doing.
+- Never move a feature to `done.md` without spawning the verifier subagent first.
+- Feature IDs (`FEAT-XXX`) are immutable — never renumber or reuse.
+
+**At session end:**
+- The session-end hook drains `current.md` → `history.md` automatically.
+
+**Files you must NOT edit:**
+- `features/done.md` — append-only, managed by the harness.
+- `progress/history.md` — append-only.
+<!-- /claude-harness -->
+BLOCK
+
+  if [ -f "$target" ]; then
+    if grep -q '<!-- claude-harness -->' "$target"; then
+      echo "[install-into-project] CLAUDE.md already contains harness block (skip)"
+    else
+      printf '\n%s\n' "$block" >> "$target"
+      echo "[install-into-project] Appended claude-harness block to $(basename "$target")"
+    fi
+  else
+    printf '%s\n' "$block" > "$target"
+    echo "[install-into-project] Created CLAUDE.md with claude-harness block"
+  fi
+}
+_inject_claude_md
+
 echo ""
 echo "Done. Next steps:"
 echo "  cd $TARGET"

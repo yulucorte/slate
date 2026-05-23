@@ -16,6 +16,7 @@ description: Use when the user opens a session in a project that lacks progress/
 1. Run: `bash $(claude-harness-plugin-root)/scripts/install-into-project.sh`
    - This copies templates into the current project: `progress/`, `features/`, `init.sh`, `AGENTS.md`.
    - It is idempotent: existing files are NEVER overwritten.
+   - Injects a `## Claude Harness Protocol` block into the project's `CLAUDE.md` (or `claude.md`), creating the file if absent. Idempotent via the `<!-- claude-harness -->` marker.
 2. Run `bash init.sh` to validate the environment.
 3. Read the just-created `AGENTS.md` and confirm to the user that the protocol is active.
 4. If the project already has a `CLAUDE.md` or `AGENTS.md`, do NOT overwrite. Append a section `## claude-harness protocol` referencing `templates/AGENTS.md`.
