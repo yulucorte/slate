@@ -30,11 +30,14 @@ See `docs/feature-format.md` for the full reference. Minimum required fields:
 
 ## Movement rules (FORBIDDEN to violate)
 
+Every feature MUST pass through `in-progress.md`. The file is the canonical "what is active right now" — `SessionStart` reads it to restore context. A feature that jumps `backlog → done` leaves the next session blind to what was just worked on.
+
 | From | To | Required condition |
 |---|---|---|
 | backlog.md | in-progress.md | User confirms work starts, or a plan is written; AND no active feature in in-progress (or user explicitly overrides WIP warning) |
-| in-progress.md | done.md | ALL subtasks `[x]` AND `Verified` field set with a real date AND user confirms branch merged |
+| in-progress.md | done.md | ALL subtasks `[x]` AND `Verified` field set with a real date AND user confirms branch merged AND the `verifying-features` subagent reports `APPROVE` in `progress/subagents/verify-FEAT-XXX.md` |
 | in-progress.md | backlog.md | User explicitly defers it (rare) |
+| backlog.md | done.md | FORBIDDEN. Move to in-progress.md first, even if the work is already finished — set `Status: in_progress`, then verify, then move to done. No shortcuts. |
 | anything | edit done.md | NEVER. Create new feature with `Supersedes: FEAT-XXX` |
 
 ## WIP limit
@@ -68,6 +71,10 @@ Wait for user confirmation before writing to `done.md`. If the feature's `Branch
 
 **Exception when `HARNESS_AUTO_PR=true`**: in that mode the flow is _done.md → post-edit-done-watcher → PR opened automatically → user merges and deletes the branch on the GitHub side_, i.e. the merge happens **after** the entry lands in `done.md`. Skip the "ya mergeaste" prompt; instead emit a one-line heads-up that the watcher will open the PR on the next edit. The `harness-open-pr` skill follows the same post-done flow when invoked manually.
 
+## Verifier subagent (mandatory)
+
+Before moving any feature to `done.md`, the agent MUST spawn the `verifying-features` skill as a subagent and wait for its report at `progress/subagents/verify-FEAT-XXX.md`. If the report says `BLOCK`, the feature stays in `in-progress.md`. The agent must NOT skip this step even if it believes all criteria are met — the verifier exists precisely to catch the cases where the main agent's attention has drifted.
+
 ## ID assignment
 
 - Read all three files, find the highest existing FEAT-NNN, assign FEAT-NNN+1.
@@ -89,3 +96,5 @@ Append to the feature's `### Notes` section: `Verified <date>: <command run>, ou
 - DO NOT use ambiguous statuses like "almost done" or "WIP". Only `backlog | in_progress | done`.
 - DO NOT move a second feature to in-progress.md without warning the user there is already one active.
 - DO NOT write the entry in done.md without confirming the user has merged and deleted the branch (unless Branch: none).
+- DO NOT move a feature directly from `backlog.md` to `done.md`. Even if the work was already finished outside the harness, route it through `in-progress.md` first (set `Status: in_progress`, run verification, then move to done). Skipping this leaves `in-progress.md` empty and breaks SessionStart recovery.
+- DO NOT move a feature to done.md without spawning the `verifying-features` subagent and confirming its report says APPROVE.
