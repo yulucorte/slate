@@ -10,6 +10,7 @@ This skill loads at SessionStart in projects that have been initialized with cla
 ## State files (canonical, do not duplicate elsewhere)
 
 - `progress/current.md` — work in flight. Read at session start, update during session, drain at session end.
+- `progress/codebase-map.md` — auto-generated structural map. Consult before running `find` or `ls -R`. Regenerates each `init.sh` run; do not edit manually.
 - `progress/history.md` — append-only log. Never edit existing entries.
 - `features/backlog.md` — desired but not started.
 - `features/in-progress.md` — actively being built.

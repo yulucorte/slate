@@ -25,6 +25,7 @@ description: Use when the user opens a session in a project that lacks progress/
 - Creates required directories if missing.
 - Verifies tooling (git, bash, jq optional).
 - Runs project-specific tests if present (npm test, pytest, cargo test — auto-detected).
+- Generates `progress/codebase-map.md` (structure + language detection). Overwritten each run.
 - Exits 0 if env is healthy, non-zero if blocked.
 
 ## Detecting v0.1.0 → v0.2.0 upgrades

@@ -43,6 +43,11 @@ if [ -f "$PROJECT_ROOT/progress/history.md" ]; then
   RECENT_HISTORY=$(tail -30 "$PROJECT_ROOT/progress/history.md" 2>/dev/null || true)
 fi
 
+CODEBASE_MAP_HINT=""
+if [ -f "$PROJECT_ROOT/progress/codebase-map.md" ]; then
+  CODEBASE_MAP_HINT="A spatial overview lives at \`progress/codebase-map.md\` — consult it before running \`find\` or \`ls -R\`."
+fi
+
 CURRENT_WORK=""
 if [ -f "$PROJECT_ROOT/progress/current.md" ]; then
   CURRENT_WORK=$(cat "$PROJECT_ROOT/progress/current.md" 2>/dev/null || true)
@@ -94,6 +99,13 @@ ${CURRENT_WORK}
 
 ## Active features
 ${ACTIVE_FEATURES}"
+
+if [ -n "$CODEBASE_MAP_HINT" ]; then
+  CONTEXT="${CONTEXT}
+
+## Codebase map
+${CODEBASE_MAP_HINT}"
+fi
 
 if [ -n "$BRANCH_WARNING" ]; then
   CONTEXT="${CONTEXT}
