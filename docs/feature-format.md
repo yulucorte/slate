@@ -43,7 +43,7 @@ The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) a
 - IDs are zero-padded to 3 digits: `FEAT-001`, `FEAT-042`, `FEAT-100`.
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
-- To find the next available ID: run `next_feature_id features/` from `scripts/lib/parse-features.sh`.
+- To find the next available ID: scan all three `features/*.md` files for `^## FEAT-NNN` and take `max(NNN) + 1`.
 - Branch slug rules and the "always `none` in backlog" lifecycle rule live in the [`## The Branch: field`](#the-branch-field) section above.
 
 ## Movement rules
