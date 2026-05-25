@@ -45,7 +45,6 @@ Move the entry block from `current.md` to `progress/history.md` under a heading 
 - Never delete from `history.md`. If something is wrong, append a correction with `## CORRECTION` heading.
 
 ## Anti-patterns
-
 - DO NOT summarize old history.md entries to keep the file short. Use git log for that.
 - DO NOT skip writing the subagent report file because "I already updated current.md". Both are required.
 - DO NOT use relative timestamps ("yesterday", "earlier"). Always absolute.

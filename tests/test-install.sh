@@ -52,18 +52,13 @@ if [ "$original_content" != "$content_after" ]; then
 fi
 echo "PASS: idempotency — existing files not overwritten"
 
-# --- Test 4: progress/subagents and progress/transcripts dirs exist ---
+# --- Test 4: progress/subagents dir exists ---
 if [ ! -d "$TMPDIR_PROJECT/progress/subagents" ]; then
   echo "FAIL: progress/subagents/ not created"
   rm -rf "$TMPDIR_PROJECT"
   exit 1
 fi
-if [ ! -d "$TMPDIR_PROJECT/progress/transcripts" ]; then
-  echo "FAIL: progress/transcripts/ not created"
-  rm -rf "$TMPDIR_PROJECT"
-  exit 1
-fi
-echo "PASS: progress/subagents/ and progress/transcripts/ exist"
+echo "PASS: progress/subagents/ exists"
 
 rm -rf "$TMPDIR_PROJECT"
 

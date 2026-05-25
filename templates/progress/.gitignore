@@ -1,4 +1,2 @@
-hooks.log
-hooks.log.*
-.in-progress.snapshot
-.done.snapshot
+transcripts/
+codebase-map.md

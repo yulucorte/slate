@@ -22,31 +22,6 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh" }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-safety.sh" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-checkpoint.sh" },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh" },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-in-progress-watcher.sh" },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-done-watcher.sh" }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-notify.sh" }
-        ]
-      }
     ]
   }
 }

@@ -27,23 +27,18 @@
 
 ## The `Branch:` field
 
-The `Branch:` field declares the git branch that will carry this feature's commits.
+The `Branch:` field declares the git branch that carries this feature's commits. It exists for traceability; the harness does not act on it automatically.
 
-- **Format**: a branch name (e.g. `feat/feat-042-add-dark-mode-toggle`, `feat/feat-007-jwt-authentication`) or the literal string `none`. The slug derivation protocol (lowercase, hyphens, strip accents) lives in [skills/breaking-down-features/SKILL.md](../skills/breaking-down-features/SKILL.md#branch-auto-suggest); it auto-suggests the name and waits for user confirmation before writing it.
-- **Lifecycle**: features in `backlog.md` **always** carry `Branch: none`. The real branch name is decided when the feature transitions to `in-progress.md`, via the auto-suggest protocol above and the WIP-limit check in [skills/managing-feature-list/SKILL.md](../skills/managing-feature-list/SKILL.md#wip-limit). `none` may also persist into in-progress/done as an explicit opt-out — the feature then ships on whatever branch picks it up.
-- **When required**: any feature that will go through the watcher hooks must declare `Branch:` — that is, whenever `HARNESS_AUTO_BRANCH=true` (or you intend to use the `harness-create-branch` skill) for in-progress features, or `HARNESS_AUTO_PR=true` (or you intend to use the `harness-open-pr` skill) for done features. In these cases the field is **mandatory**, with `none` as the explicit opt-out.
-- **When optional**: if both `HARNESS_AUTO_BRANCH=false` and `HARNESS_AUTO_PR=false` and you don't plan to use the manual skills, the field may be omitted. It is still recommended for traceability.
-- **What happens if missing**: the watcher hooks (`post-edit-in-progress-watcher.sh`, `post-edit-done-watcher.sh`) emit a yellow `warn` line via `emit-status.sh` (reason `branch-missing-or-none`) and skip the automated action. The `verify-harness-hooks` skill flags such features as yellow. Nothing breaks — the feature simply does not auto-branch or auto-PR.
-- **`done` semantics**: when a feature is moved to `done.md`, the done watcher will only open a PR if the current git branch matches the feature's `Branch:` value. A mismatch produces a `warn` with reason `branch-mismatch`. The session-start hook performs the same check at session boundaries and surfaces it via `additionalContext`.
-
-The field is read by [hooks/lib/read-feature.sh](../hooks/lib/read-feature.sh) and consumed by both watchers, [scripts/harness/pr-open.sh](../scripts/harness/pr-open.sh), [hooks/session-start.sh](../hooks/session-start.sh), and the `harness-create-branch` / `harness-open-pr` skills.
+- **Format**: a branch name (e.g. `feat/feat-042-add-dark-mode-toggle`, `feat/feat-007-jwt-authentication`) or the literal string `none`. The suggested format is `feat/feat-NNN-<slug>`, derived per `breaking-down-features` (slug = title lowercased, hyphens, accents stripped, non-alphanumerics removed).
+- **Lifecycle**: features in `backlog.md` always carry `Branch: none`. The real branch name is decided when the feature transitions to `in-progress.md`. `none` may persist into in-progress/done as an explicit opt-out — the feature then ships on whatever branch picks it up.
+- **Optional**: the field is recommended but not enforced. If you don't care about branch tracking, set `none` and move on.
 
 ## ID rules
 
 - IDs are zero-padded to 3 digits: `FEAT-001`, `FEAT-042`, `FEAT-100`.
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
-- To find the next available ID: run `next_feature_id features/` from `scripts/lib/parse-features.sh`.
+- To find the next available ID: scan all three `features/*.md` files for `^## FEAT-NNN` and take `max(NNN) + 1`.
 - Branch slug rules and the "always `none` in backlog" lifecycle rule live in the [`## The Branch: field`](#the-branch-field) section above.
 
 ## Movement rules
