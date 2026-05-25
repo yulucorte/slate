@@ -1,271 +1,71 @@
 #!/usr/bin/env bash
-# This file was installed by claude-harness. Edit it to add project-specific setup.
+# Installed by claude-harness. Edit to add project-specific setup.
 set -euo pipefail
 
-echo "[init.sh] Starting environment check..."
+echo "[init.sh] starting..."
 
-# 1. Create required directories (idempotent)
-mkdir -p progress/subagents progress/transcripts features
+mkdir -p progress/subagents features
 
-# 2. Create missing state files without overwriting existing ones
 _create_if_missing() {
-  local file="$1"
-  local header="$2"
+  local file="$1" header="$2"
   if [ ! -s "$file" ]; then
-    echo "$header" > "$file"
+    printf '%s\n' "$header" > "$file"
     echo "[init.sh] created $file"
-  else
-    echo "[init.sh] exists  $file"
   fi
 }
 
 _create_if_missing "progress/current.md" "# Current work
 
-_(none in flight)_
-
-<!-- This file is auto-managed by claude-harness:tracking-progress.
-     Entries here represent IN-FLIGHT work for the current session.
-     At session end, completed entries are moved to history.md;
-     orphaned entries become CARRY-OVER. -->"
+_(none in flight)_"
 
 _create_if_missing "progress/history.md" "# Session history
-
-<!-- Append-only changelog. Never edit existing entries.
-     Format: ## YYYY-MM-DD — <session summary>
-     Each session adds entries under its heading. -->"
+"
 
 _create_if_missing "features/backlog.md" "# Backlog
-
-<!-- Features wanted but not started. Status: backlog.
-     Add via claude-harness:breaking-down-features.
-     Move to in-progress.md when work begins. -->"
+"
 
 _create_if_missing "features/in-progress.md" "# In progress
-
-<!-- Features being actively built. Status: in_progress.
-     A feature stays here until ALL subtasks are [x] AND Verified is set,
-     at which point claude-harness:managing-feature-list moves it to done.md. -->"
+"
 
 _create_if_missing "features/done.md" "# Done
 
-<!-- Completed and verified features. Status: done.
-     FORBIDDEN to edit existing entries.
-     For changes, create a new feature with \`Supersedes: FEAT-XXX\`. -->"
+<!-- FORBIDDEN to edit existing entries. Create a successor with Supersedes: FEAT-XXX. -->
+"
 
-# 3. Detect project tooling and run setup
-if [ -f package.json ] && command -v node >/dev/null 2>&1; then
-  echo "[init.sh] node project detected, running npm install..."
-  npm install --silent 2>/dev/null || echo "[init.sh] npm install failed (non-fatal)"
-fi
+# Detect tooling and run lightweight setup (non-fatal)
+[ -f package.json ] && command -v node >/dev/null 2>&1 && \
+  { echo "[init.sh] node project; npm install..."; npm install --silent 2>/dev/null || true; }
 
-if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
-  echo "[init.sh] python project detected, set up venv manually"
-fi
+[ -f Cargo.toml ] && command -v cargo >/dev/null 2>&1 && \
+  { echo "[init.sh] rust project; cargo check..."; cargo check --quiet 2>/dev/null || true; }
 
-if [ -f Cargo.toml ] && command -v cargo >/dev/null 2>&1; then
-  echo "[init.sh] rust project detected, running cargo check..."
-  cargo check --quiet 2>/dev/null || echo "[init.sh] cargo check failed (non-fatal)"
-fi
+[ -f go.mod ] && command -v go >/dev/null 2>&1 && \
+  { echo "[init.sh] go project; go mod download..."; go mod download 2>/dev/null || true; }
 
-if [ -f go.mod ] && command -v go >/dev/null 2>&1; then
-  echo "[init.sh] go project detected, running go mod download..."
-  go mod download 2>/dev/null || echo "[init.sh] go mod download failed (non-fatal)"
-fi
-
-# 5. Generate codebase map (always regenerated; provides spatial context to the agent)
-_generate_codebase_map() {
+# Generate codebase map (always regenerated)
+_codebase_map() {
   local out="progress/codebase-map.md"
-  local now
-  now=$(date '+%Y-%m-%d %H:%M' 2>/dev/null || date)
-  mkdir -p progress
-
+  local now; now=$(date '+%Y-%m-%d %H:%M' 2>/dev/null || date)
   local tree_output
   if command -v tree >/dev/null 2>&1; then
     tree_output=$(tree -L 3 -a \
-      -I 'node_modules|.git|__pycache__|.venv|venv|.next|dist|build|.claude|transcripts' \
-      2>/dev/null || true)
+      -I 'node_modules|.git|__pycache__|.venv|venv|.next|dist|build|.claude' 2>/dev/null || true)
   else
     tree_output=$(find . -maxdepth 3 \
       \( -path '*/node_modules' -o -path '*/.git' -o -path '*/__pycache__' \
          -o -path '*/.venv' -o -path '*/venv' -o -path '*/.next' \
-         -o -path '*/dist' -o -path '*/build' -o -path '*/.claude' \
-         -o -path '*/progress/transcripts' \) -prune -o -print 2>/dev/null \
-      | sort)
+         -o -path '*/dist' -o -path '*/build' -o -path '*/.claude' \) -prune -o -print 2>/dev/null | sort)
   fi
-
-  local langs=""
-  _count_ext() {
-    local ext="$1" label="$2"
-    local n
-    n=$(find . -type f -name "*.$ext" \
-      -not -path '*/node_modules/*' -not -path '*/.git/*' \
-      -not -path '*/__pycache__/*' -not -path '*/.venv/*' \
-      -not -path '*/venv/*' -not -path '*/.next/*' \
-      -not -path '*/dist/*' -not -path '*/build/*' \
-      -not -path '*/.claude/*' 2>/dev/null | wc -l | tr -d ' ')
-    if [ "${n:-0}" -gt 0 ]; then
-      langs="${langs}- ${label}: ${n} files
-"
-    fi
-  }
-  _count_ext py    "Python"
-  _count_ext ts    "TypeScript"
-  _count_ext tsx   "TypeScript (TSX)"
-  _count_ext js    "JavaScript"
-  _count_ext jsx   "JavaScript (JSX)"
-  _count_ext go    "Go"
-  _count_ext rs    "Rust"
-  _count_ext java  "Java"
-  _count_ext cpp   "C++"
-  _count_ext c     "C"
-  _count_ext rb    "Ruby"
-  _count_ext php   "PHP"
-  _count_ext swift "Swift"
-  _count_ext kt    "Kotlin"
-  _count_ext sh    "Shell"
-
-  local key_dirs=""
-  for d in */; do
-    [ -d "$d" ] || continue
-    local clean="${d%/}"
-    case "$clean" in
-      node_modules|.git|.venv|venv|__pycache__|.next|dist|build|.claude) continue ;;
-    esac
-    if [ -f "${clean}/README.md" ]; then
-      local first
-      first=$(grep -m1 -E '^[A-Za-z]' "${clean}/README.md" 2>/dev/null | head -c 120)
-      key_dirs="${key_dirs}- \`${clean}/\` — ${first}
-"
-    else
-      key_dirs="${key_dirs}- \`${clean}/\`
-"
-    fi
-  done
-
   {
     echo "# Codebase Map"
-    echo "> Auto-generated by init.sh — last updated: ${now}"
+    echo "> Auto-generated by init.sh — $now"
     echo ""
-    echo "## Project Structure"
     echo '```'
     echo "$tree_output"
     echo '```'
-    echo ""
-    echo "## Languages Detected"
-    if [ -n "$langs" ]; then
-      printf '%s' "$langs"
-    else
-      echo "_(no source files detected at depth 3)_"
-    fi
-    echo ""
-    echo "## Key Directories"
-    if [ -n "$key_dirs" ]; then
-      printf '%s' "$key_dirs"
-    else
-      echo "_(no top-level directories)_"
-    fi
   } > "$out"
   echo "[init.sh] codebase map -> $out"
 }
-_generate_codebase_map
+_codebase_map
 
-# 6. Environment report (informational, non-blocking)
-_env_report() {
-  echo "[init.sh] Environment report"
-  echo "  --------------------------------"
-
-  local has_py has_ts has_js has_rs has_go has_node
-  has_py=$(find . -maxdepth 4 -type f -name '*.py'  -not -path '*/.venv/*' -not -path '*/venv/*' 2>/dev/null | head -1)
-  has_ts=$(find . -maxdepth 4 -type f \( -name '*.ts' -o -name '*.tsx' \) -not -path '*/node_modules/*' 2>/dev/null | head -1)
-  has_js=$(find . -maxdepth 4 -type f \( -name '*.js' -o -name '*.jsx' \) -not -path '*/node_modules/*' 2>/dev/null | head -1)
-  has_rs=$(find . -maxdepth 4 -type f -name '*.rs' -not -path '*/target/*' 2>/dev/null | head -1)
-  has_go=$(find . -maxdepth 4 -type f -name '*.go' 2>/dev/null | head -1)
-  has_node=""
-  [ -f package.json ] && has_node="yes"
-
-  local detected=""
-  [ -n "$has_py" ] && detected="${detected}Python "
-  [ -n "$has_ts" ] && detected="${detected}TypeScript "
-  [ -n "$has_js" ] && detected="${detected}JavaScript "
-  [ -n "$has_rs" ] && detected="${detected}Rust "
-  [ -n "$has_go" ] && detected="${detected}Go "
-  [ -n "$has_node" ] && detected="${detected}Node "
-  echo "  languages: ${detected:-none detected}"
-
-  local runners=""
-  if [ -f package.json ] && grep -q '"test"' package.json 2>/dev/null; then
-    runners="${runners}npm-test "
-  fi
-  if [ -f pytest.ini ] || { [ -f pyproject.toml ] && grep -q 'pytest' pyproject.toml 2>/dev/null; } || [ -f setup.cfg ]; then
-    runners="${runners}pytest "
-  fi
-  if [ -f Makefile ] && grep -qE '^test:' Makefile 2>/dev/null; then
-    runners="${runners}make-test "
-  fi
-  if [ -f Cargo.toml ]; then
-    runners="${runners}cargo-test "
-  fi
-  if [ -f go.mod ]; then
-    runners="${runners}go-test "
-  fi
-  echo "  test runners: ${runners:-none detected}"
-
-  local lsp=""
-  [ -f .vscode/settings.json ]   && lsp="${lsp}vscode "
-  [ -f pyrightconfig.json ]      && lsp="${lsp}pyright "
-  [ -f tsconfig.json ]           && lsp="${lsp}tsconfig "
-  ls .eslintrc* 2>/dev/null | head -1 >/dev/null 2>&1 && lsp="${lsp}eslint "
-  [ -f compile_commands.json ]   && lsp="${lsp}clangd "
-  echo "  lsp/lint configs: ${lsp:-none detected}"
-
-  local ci=""
-  [ -d .github/workflows ]       && ci="${ci}github-actions "
-  [ -f .gitlab-ci.yml ]          && ci="${ci}gitlab "
-  [ -f Jenkinsfile ]             && ci="${ci}jenkins "
-  echo "  ci/cd: ${ci:-none detected}"
-
-  if [ -n "$has_py" ]; then
-    if [ ! -f pyrightconfig.json ] && [ ! -f .vscode/settings.json ] && [ ! -f pyproject.toml ]; then
-      echo "  ⚠ Python detected but no pyrightconfig.json / .vscode / pyproject.toml — LSP may not work"
-    fi
-    if ! echo "$runners" | grep -q 'pytest'; then
-      echo "  ⚠ Python detected but no pytest config found"
-    fi
-  fi
-  if [ -n "$has_ts" ]; then
-    if [ ! -f tsconfig.json ]; then
-      echo "  ⚠ TypeScript detected but no tsconfig.json — LSP may not work"
-    fi
-    if [ -n "$has_node" ] && ! grep -q '"test"' package.json 2>/dev/null; then
-      echo "  ⚠ TypeScript detected but no test script found in package.json"
-    fi
-  fi
-  if [ -n "$has_js" ] && [ -n "$has_node" ]; then
-    if ! grep -q '"test"' package.json 2>/dev/null; then
-      echo "  ⚠ JavaScript detected but no test script in package.json"
-    fi
-  fi
-  if [ -n "$has_rs" ] && [ ! -f Cargo.toml ]; then
-    echo "  ⚠ Rust source detected but no Cargo.toml"
-  fi
-  if [ -n "$has_go" ] && [ ! -f go.mod ]; then
-    echo "  ⚠ Go source detected but no go.mod"
-  fi
-
-  echo "  --------------------------------"
-}
-_env_report
-
-# 4. Smoke test (non-blocking)
-if [ -f package.json ] && command -v npm >/dev/null 2>&1; then
-  echo "[init.sh] running npm test (60s timeout)..."
-  timeout 60 npm test --silent 2>/dev/null || echo "[init.sh] smoke test failed or timed out (non-fatal)"
-elif command -v pytest >/dev/null 2>&1 && { [ -f pyproject.toml ] || [ -f setup.py ]; }; then
-  echo "[init.sh] running pytest (60s timeout)..."
-  timeout 60 pytest -q 2>/dev/null || echo "[init.sh] smoke test failed or timed out (non-fatal)"
-elif [ -f Cargo.toml ] && command -v cargo >/dev/null 2>&1; then
-  echo "[init.sh] running cargo test (60s timeout)..."
-  timeout 60 cargo test --quiet 2>/dev/null || echo "[init.sh] smoke test failed or timed out (non-fatal)"
-fi
-
-echo "[init.sh] OK at $(date -Iseconds 2>/dev/null || date)"
+echo "[init.sh] OK"
