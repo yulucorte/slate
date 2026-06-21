@@ -15,3 +15,13 @@ _(none in flight)_
      Entries here represent IN-FLIGHT work for the current session.
      At session end, completed entries are moved to history.md;
      orphaned entries become CARRY-OVER. -->
+
+## 2026-06-21 13:10:16 — Session end
+# Current work
+
+_(none in flight)_
+
+<!-- This file is auto-managed by claude-harness:tracking-progress.
+     Entries here represent IN-FLIGHT work for the current session.
+     At session end, completed entries are moved to history.md;
+     orphaned entries become CARRY-OVER. -->
