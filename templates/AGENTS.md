@@ -1,6 +1,6 @@
 # Project protocol
 
-This project uses **Superpowers** + **claude-harness**.
+This project uses **Superpowers** + **slate**.
 
 ## State files
 

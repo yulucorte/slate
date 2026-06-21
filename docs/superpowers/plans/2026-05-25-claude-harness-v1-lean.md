@@ -1,10 +1,10 @@
-# claude-harness v1.0 lean — Implementation Plan
+# slate v1.0 lean — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Reduce claude-harness from ~60 files (9 hooks, 12 skills, 7 lib scripts, 4 harness scripts) to ~15 files (3 hooks, 4 skills), keeping only what directly serves the three core functions: persistent state, controlled feature movement, and SessionStart context injection.
+**Goal:** Reduce slate from ~60 files (9 hooks, 12 skills, 7 lib scripts, 4 harness scripts) to ~15 files (3 hooks, 4 skills), keeping only what directly serves the three core functions: persistent state, controlled feature movement, and SessionStart context injection.
 
-**Architecture:** Pure deletion + targeted rewrites in 10 incremental phases, one git commit per phase. Each phase leaves the repo in a functional state. Brief: `BRIEF-claude-harness-v1-lean.md` (gitignored, source of truth). All file paths relative to `/Users/felipevillacorte/Desktop/claude-harness`.
+**Architecture:** Pure deletion + targeted rewrites in 10 incremental phases, one git commit per phase. Each phase leaves the repo in a functional state. Brief: `BRIEF-slate-v1-lean.md` (gitignored, source of truth). All file paths relative to `/Users/felipevillacorte/Desktop/slate`.
 
 **Tech Stack:** bash, grep, awk, find, sed, python3 (for JSON encoding in `session-start.sh`). No new dependencies.
 
@@ -18,7 +18,7 @@ hooks/
   session-end.sh                  # kept as-is (preserved)
   pre-compact.sh                  # kept as-is (preserved)
 skills/
-  using-claude-harness/SKILL.md       # ≤50 lines, English
+  using-slate/SKILL.md       # ≤50 lines, English
   managing-feature-list/SKILL.md      # ≤50 lines, English
   breaking-down-features/SKILL.md     # simplified
   tracking-progress/SKILL.md          # minor edit
@@ -43,7 +43,7 @@ tests/                            # subset that exercises remaining surface
 
 The brief's verification mandates exactly 4 skill directories. Beyond the 6 it names explicitly, two more must go because they are not in the keep list:
 
-- `skills/handing-off-session/` — its only invoker is `using-claude-harness`, which is being rewritten to drop the reference.
+- `skills/handing-off-session/` — its only invoker is `using-slate`, which is being rewritten to drop the reference.
 - `skills/scaffolding-environment/` — superseded by the lean `install-into-project.sh` + `init.sh`.
 
 ---
@@ -89,7 +89,7 @@ git rm scripts/lib/checkpoint.sh
 - [ ] **Step 1.4: Delete templates**
 
 ```bash
-git rm -r templates/.claude-harness \
+git rm -r templates/.slate \
           templates/docs
 ```
 
@@ -136,12 +136,12 @@ git rm docs/contributing.md \
        docs/installation.md \
        docs/use-feedback.md \
        docs/workflow.md \
-       docs/superpowers/plans/2026-05-03-claude-harness-plugin.md \
+       docs/superpowers/plans/2026-05-03-slate-plugin.md \
        docs/superpowers/plans/2026-05-04-branch-wip-limit.md \
        docs/superpowers/plans/2026-05-11-project-hooks-and-pr-automation.md \
        docs/superpowers/plans/2026-05-23-project-awareness-layer.md \
-       BRIEF-claude-harness.md \
-       BRIEF-claude-harness-v0.2.md \
+       BRIEF-slate.md \
+       BRIEF-slate-v0.2.md \
        CHANGELOG.md \
        progress/hooks.log
 ```
@@ -222,7 +222,7 @@ git commit -m "refactor: reduce hooks.json to 3 core hooks"
 **Files:**
 - Modify: `hooks/session-start.sh`
 
-Removes: project-map loading, consulting-project-map skill embed, branch mismatch warning, codebase-map hint section. Keeps: init.sh runner, using-claude-harness skill load, last 30 lines of history.md, current.md, first 10 features from in-progress.md + backlog.md, JSON emission.
+Removes: project-map loading, consulting-project-map skill embed, branch mismatch warning, codebase-map hint section. Keeps: init.sh runner, using-slate skill load, last 30 lines of history.md, current.md, first 10 features from in-progress.md + backlog.md, JSON emission.
 
 - [ ] **Step 3.1: Overwrite `hooks/session-start.sh`**
 
@@ -235,7 +235,7 @@ set -uo pipefail
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}}"
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 
-# Only operate if this project has been initialized with claude-harness
+# Only operate if this project has been initialized with slate
 if [ ! -d "$PROJECT_ROOT/progress" ] || [ ! -d "$PROJECT_ROOT/features" ]; then
   exit 0
 fi
@@ -250,8 +250,8 @@ if [ -f "$PROJECT_ROOT/init.sh" ]; then
 fi
 
 SKILL_CONTENT=""
-if [ -f "$PLUGIN_ROOT/skills/using-claude-harness/SKILL.md" ]; then
-  SKILL_CONTENT=$(cat "$PLUGIN_ROOT/skills/using-claude-harness/SKILL.md" 2>/dev/null || true)
+if [ -f "$PLUGIN_ROOT/skills/using-slate/SKILL.md" ]; then
+  SKILL_CONTENT=$(cat "$PLUGIN_ROOT/skills/using-slate/SKILL.md" 2>/dev/null || true)
 fi
 
 RECENT_HISTORY=""
@@ -303,14 +303,14 @@ Expected: line count ≤ 60.
 
 Run:
 ```bash
-cd /tmp && bash /Users/felipevillacorte/Desktop/claude-harness/hooks/session-start.sh; echo "exit=$?"
+cd /tmp && bash /Users/felipevillacorte/Desktop/slate/hooks/session-start.sh; echo "exit=$?"
 ```
 Expected: no output (no `progress/`+`features/` in /tmp), `exit=0`.
 
 - [ ] **Step 3.4: Commit**
 
 ```bash
-cd /Users/felipevillacorte/Desktop/claude-harness
+cd /Users/felipevillacorte/Desktop/slate
 git add hooks/session-start.sh
 git commit -m "simplify: session-start.sh loads only core context"
 ```
@@ -320,24 +320,24 @@ git commit -m "simplify: session-start.sh loads only core context"
 ## Task 4: Phase 4 — Rewrite the 4 surviving skills
 
 **Files:**
-- Modify: `skills/using-claude-harness/SKILL.md`
+- Modify: `skills/using-slate/SKILL.md`
 - Modify: `skills/managing-feature-list/SKILL.md`
 - Modify: `skills/breaking-down-features/SKILL.md`
 - Modify: `skills/tracking-progress/SKILL.md`
 
 All content in English. Each ≤ 50 lines.
 
-- [ ] **Step 4.1: Overwrite `skills/using-claude-harness/SKILL.md`**
+- [ ] **Step 4.1: Overwrite `skills/using-slate/SKILL.md`**
 
 ```markdown
 ---
-name: using-claude-harness
+name: using-slate
 description: Use when starting any session in a project that contains progress/ or features/ directories. Establishes the protocol for reading current state, updating progress, and respecting the feature list as canonical scope.
 ---
 
-# Using claude-harness
+# Using slate
 
-Loads at SessionStart in projects initialized with claude-harness.
+Loads at SessionStart in projects initialized with slate.
 
 ## State files (canonical)
 
@@ -356,7 +356,7 @@ Loads at SessionStart in projects initialized with claude-harness.
 
 ## Interop with Superpowers
 
-claude-harness does NOT replace Superpowers.
+slate does NOT replace Superpowers.
 - `superpowers:brainstorming` → spec in `docs/superpowers/specs/`.
 - `superpowers:writing-plans` → plan in `docs/superpowers/plans/`.
 - After the plan is approved, invoke `breaking-down-features` to derive entries in `features/backlog.md`.
@@ -499,7 +499,7 @@ git commit -m "simplify: rewrite 4 remaining skills to essential content only"
 ```markdown
 # Project protocol
 
-This project uses **Superpowers** + **claude-harness**.
+This project uses **Superpowers** + **slate**.
 
 ## State files
 
@@ -529,7 +529,7 @@ This project uses **Superpowers** + **claude-harness**.
 
 ```bash
 #!/usr/bin/env bash
-# Installed by claude-harness. Edit to add project-specific setup.
+# Installed by slate. Edit to add project-specific setup.
 set -euo pipefail
 
 echo "[init.sh] starting..."
@@ -639,7 +639,7 @@ Drops: v0.2 config layer, v0.4 project-map, v0.5 CLAUDE.md injection, snapshot p
 
 ```bash
 #!/usr/bin/env bash
-# Install claude-harness templates into the current project. Idempotent.
+# Install slate templates into the current project. Idempotent.
 set -euo pipefail
 
 PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -666,7 +666,7 @@ _copy_if_missing() {
   fi
 }
 
-echo "Installing claude-harness templates into $TARGET..."
+echo "Installing slate templates into $TARGET..."
 
 _copy_if_missing "$PLUGIN_ROOT/templates/AGENTS.md"             "AGENTS.md"
 _copy_if_missing "$PLUGIN_ROOT/templates/init.sh"               "init.sh"
@@ -784,14 +784,14 @@ git commit -m "cleanup: remove parse-features.sh (orphaned after verifying-featu
 
 ```json
 {
-  "name": "claude-harness",
+  "name": "slate",
   "description": "Persistent session state and feature tracking for Claude Code. Lightweight companion to Superpowers.",
   "version": "1.0.0",
   "author": {
     "name": "Felipe Villacorte",
     "email": "fvilla.emp@gmail.com"
   },
-  "homepage": "https://github.com/yulucorte/claude-harness",
+  "homepage": "https://github.com/yulucorte/slate",
   "license": "MIT"
 }
 ```
@@ -821,7 +821,7 @@ git commit -m "release: v1.0.0 lean"
 - [ ] **Step 9.1: Overwrite `README.md`**
 
 ```markdown
-# claude-harness
+# slate
 
 Markdown-only persistent state and feature tracking for [Claude Code](https://claude.ai/code). Lightweight companion to [Superpowers](https://github.com/obra/superpowers).
 
@@ -833,16 +833,16 @@ Superpowers gives Claude great working habits within a session: brainstorming �
 - **Canonical feature scope** — which work is actually committed to, and is it actually done?
 - **Context at session start** — without re-reading the whole repo on each `/clear` or compact.
 
-claude-harness fills exactly those three gaps. Nothing more.
+slate fills exactly those three gaps. Nothing more.
 
 ## Install
 
 ```bash
 # Once, per Claude Code install:
-/plugin install yulucorte/claude-harness
+/plugin install yulucorte/slate
 
 # Once, per project:
-bash ~/.claude/plugins/cache/.../claude-harness/scripts/install-into-project.sh
+bash ~/.claude/plugins/cache/.../slate/scripts/install-into-project.sh
 ```
 
 The install script copies templates into the current project. It is idempotent and never overwrites existing files.
@@ -902,13 +902,13 @@ Lean rewrite. The harness now does exactly three things: persistent session stat
 - Skills: `consulting-project-map`, `harness-create-branch`, `harness-doctor`, `harness-open-pr`, `verify-harness-hooks`, `verifying-features`, `handing-off-session`, `scaffolding-environment`.
 - `scripts/harness/` (doctor, pr-open, pr-merge, rollback).
 - `scripts/lib/parse-features.sh`, `scripts/lib/checkpoint.sh`, all `hooks/lib/`.
-- Config layer (`templates/.claude-harness/`).
+- Config layer (`templates/.slate/`).
 - Project map and ADR templates.
 - v0.2/v0.4/v0.5 install-time migrations.
 
 ### Kept and simplified
 - 3 hooks: `SessionStart`, `SessionEnd`, `PreCompact`.
-- 4 skills: `using-claude-harness`, `managing-feature-list`, `breaking-down-features`, `tracking-progress`.
+- 4 skills: `using-slate`, `managing-feature-list`, `breaking-down-features`, `tracking-progress`.
 - 1 install script that copies templates and exits.
 ```
 
@@ -946,7 +946,7 @@ Expected: `Results: 2 pass, 0 fail`. If a test fails because it referenced a del
 
 Common likely failure modes for this test against the lean install script:
 
-- It asserts the existence of `.claude-harness/config.sh` → remove that assertion.
+- It asserts the existence of `.slate/config.sh` → remove that assertion.
 - It asserts the presence of `docs/project-map.md` → remove that assertion.
 - It asserts CLAUDE.md injection content → remove that assertion.
 - It runs against a snapshot of the old install script → re-record expected output.
@@ -1005,7 +1005,7 @@ Run:
 ls -d skills/*/ | wc -l
 ls -d skills/*/
 ```
-Expected: count is `4`; entries are `breaking-down-features`, `managing-feature-list`, `tracking-progress`, `using-claude-harness`.
+Expected: count is `4`; entries are `breaking-down-features`, `managing-feature-list`, `tracking-progress`, `using-slate`.
 
 - [ ] **Step 11.4: Each skill ≤ 50 lines**
 

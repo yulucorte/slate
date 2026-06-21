@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installed by claude-harness. Edit to add project-specific setup.
+# Installed by slate. Edit to add project-specific setup.
 set -euo pipefail
 
 echo "[init.sh] starting..."

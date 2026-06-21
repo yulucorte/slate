@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install claude-harness templates into the current project. Idempotent.
+# Install slate templates into the current project. Idempotent.
 set -euo pipefail
 
 PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -26,7 +26,7 @@ _copy_if_missing() {
   fi
 }
 
-echo "Installing claude-harness templates into $TARGET..."
+echo "Installing slate templates into $TARGET..."
 
 _copy_if_missing "$PLUGIN_ROOT/templates/AGENTS.md"             "AGENTS.md"
 _copy_if_missing "$PLUGIN_ROOT/templates/init.sh"               "init.sh"

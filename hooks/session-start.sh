@@ -6,7 +6,7 @@ set -uo pipefail
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}}"
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 
-# Only operate if this project has been initialized with claude-harness
+# Only operate if this project has been initialized with slate
 if [ ! -d "$PROJECT_ROOT/progress" ] || [ ! -d "$PROJECT_ROOT/features" ]; then
   exit 0
 fi
@@ -21,8 +21,8 @@ if [ -f "$PROJECT_ROOT/init.sh" ]; then
 fi
 
 SKILL_CONTENT=""
-if [ -f "$PLUGIN_ROOT/skills/using-claude-harness/SKILL.md" ]; then
-  SKILL_CONTENT=$(cat "$PLUGIN_ROOT/skills/using-claude-harness/SKILL.md" 2>/dev/null || true)
+if [ -f "$PLUGIN_ROOT/skills/using-slate/SKILL.md" ]; then
+  SKILL_CONTENT=$(cat "$PLUGIN_ROOT/skills/using-slate/SKILL.md" 2>/dev/null || true)
 fi
 
 RECENT_HISTORY=""

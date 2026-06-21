@@ -1,11 +1,11 @@
 {
-  "name": "claude-harness",
+  "name": "slate",
   "description": "Persistent session state and feature tracking for Claude Code. Lightweight companion to Superpowers.",
   "version": "1.0.0",
   "author": {
     "name": "Felipe Villacorte",
     "email": "fvilla.emp@gmail.com"
   },
-  "homepage": "https://github.com/yulucorte/claude-harness",
+  "homepage": "https://github.com/yulucorte/slate",
   "license": "MIT"
 }

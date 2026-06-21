@@ -6,7 +6,7 @@ This directory is the canonical scope of the project.
 - **`in-progress.md`** — features being actively worked on.
 - **`done.md`** — completed and verified features. **FORBIDDEN to edit.**
 
-See `docs/feature-format.md` (in the claude-harness plugin) for the full format reference.
+See `docs/feature-format.md` (in the slate plugin) for the full format reference.
 
 ## Quick example
 

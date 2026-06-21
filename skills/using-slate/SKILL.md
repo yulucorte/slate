@@ -1,11 +1,11 @@
 ---
-name: using-claude-harness
+name: using-slate
 description: Use when starting any session in a project that contains progress/ or features/ directories. Establishes the protocol for reading current state, updating progress, and respecting the feature list as canonical scope.
 ---
 
-# Using claude-harness
+# Using slate
 
-Loads at SessionStart in projects initialized with claude-harness.
+Loads at SessionStart in projects initialized with slate.
 
 ## State files (canonical)
 
@@ -24,7 +24,7 @@ Loads at SessionStart in projects initialized with claude-harness.
 
 ## Interop with Superpowers
 
-claude-harness does NOT replace Superpowers.
+slate does NOT replace Superpowers.
 - `superpowers:brainstorming` → spec in `docs/superpowers/specs/`.
 - `superpowers:writing-plans` → plan in `docs/superpowers/plans/`.
 - After the plan is approved, invoke `breaking-down-features` to derive entries in `features/backlog.md`.

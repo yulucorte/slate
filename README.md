@@ -1,4 +1,4 @@
-# claude-harness
+# slate
 
 Markdown-only persistent state and feature tracking for [Claude Code](https://claude.ai/code). Lightweight companion to [Superpowers](https://github.com/obra/superpowers).
 
@@ -10,16 +10,16 @@ Superpowers gives Claude great working habits within a session: brainstorming �
 - **Canonical feature scope** — which work is actually committed to, and is it actually done?
 - **Context at session start** — without re-reading the whole repo on each `/clear` or compact.
 
-claude-harness fills exactly those three gaps. Nothing more.
+slate fills exactly those three gaps. Nothing more.
 
 ## Install
 
 ```bash
 # Once, per Claude Code install:
-/plugin install yulucorte/claude-harness
+/plugin install yulucorte/slate
 
 # Once, per project:
-bash ~/.claude/plugins/cache/.../claude-harness/scripts/install-into-project.sh
+bash ~/.claude/plugins/cache/.../slate/scripts/install-into-project.sh
 ```
 
 The install script copies templates into the current project. It is idempotent and never overwrites existing files.
