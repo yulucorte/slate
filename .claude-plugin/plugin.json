@@ -1,7 +1,7 @@
 {
   "name": "slate",
   "description": "Persistent session state and feature tracking for Claude Code. Lightweight companion to Superpowers.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Felipe Villacorte",
     "email": "fvilla.emp@gmail.com"
