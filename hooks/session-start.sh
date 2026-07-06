@@ -62,7 +62,7 @@ BUGS_LINE=""
 if [ -f "$PROJECT_ROOT/bugs/open.md" ]; then
   BUG_IDS=$(grep -o '^## BUG-[0-9]\{3\}' "$PROJECT_ROOT/bugs/open.md" 2>/dev/null | sed 's/^## //' | paste -sd, - || true)
   BUG_COUNT=$(printf '%s' "$BUG_IDS" | tr ',' '\n' | grep -c . || true)
-  [ "$BUG_COUNT" -gt 0 ] 2>/dev/null && BUGS_LINE="## Bugs abiertos: ${BUG_COUNT} (${BUG_IDS})"
+  [ "${BUG_COUNT:-0}" -gt 0 ] 2>/dev/null && BUGS_LINE="## Bugs abiertos: ${BUG_COUNT} (${BUG_IDS})"
 fi
 
 IDEAS_LINE=""

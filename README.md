@@ -56,7 +56,7 @@ The install script copies templates into the current project. It is idempotent a
 - **Markdown only.** No JSON, YAML, or SQLite state files. Anything the agent writes is anything you can `grep`.
 - **Append-only `done.md`.** Edits there are forbidden. Successors carry a `Supersedes: FEAT-XXX` line.
 - **Immutable FEAT IDs.** Once assigned, never renumber.
-- **3 hooks, 4 skills.** If you cannot justify a new one in one sentence, it does not belong here.
+- **3 hooks, 6 skills.** If you cannot justify a new one in one sentence, it does not belong here.
 
 ## License
 
