@@ -9,7 +9,7 @@ check_command() {
   local file="$PLUGIN_ROOT/commands/$name.md"
   [ -f "$file" ] || { echo "FAIL: $file missing"; exit 1; }
   head -1 "$file" | grep -q '^---$' || { echo "FAIL: $file missing frontmatter opening"; exit 1; }
-  grep -q "^description:" "$file" || { echo "FAIL: $file missing description"; exit 1; }
+  awk '/^---$/{c++; next} c==1' "$file" | grep -q "^description:" || { echo "FAIL: $file description not inside frontmatter block"; exit 1; }
   echo "PASS: commands/$name.md valid"
 }
 
