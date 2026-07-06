@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.0 — 2026-07-06
+
+Adds bug traceability and idea capture, following the same markdown-only,
+append-only-history pattern as `features/`.
+
+### Added
+- `bugs/open.md` / `bugs/fixed.md` — bug tracking with `BUG-XXX` IDs,
+  independent numbering from `FEAT-XXX`. See `docs/bug-format.md`.
+- `ideas/inbox.md` / `ideas/triaged.md` — zero-friction idea capture plus
+  explicit triage (group by area, promote/archive/keep-pending). See
+  `docs/idea-format.md`.
+- Skills: `tracking-bugs`, `managing-ideas`.
+- Commands: `/idea "<text>"`, `/ideas-triage`.
+- `hooks/session-start.sh` now injects open-bug count + IDs and
+  pending-idea count, same lightweight index principle as the existing
+  in-progress features index.
+
 ## 1.1.0 — 2026-06-22
 
 SessionStart hook now injects lightweight state instead of full dumps. Measured
