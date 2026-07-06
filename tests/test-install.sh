@@ -19,6 +19,10 @@ expected_files=(
   "features/backlog.md"
   "features/in-progress.md"
   "features/done.md"
+  "bugs/open.md"
+  "bugs/fixed.md"
+  "ideas/inbox.md"
+  "ideas/triaged.md"
 )
 
 for f in "${expected_files[@]}"; do
@@ -59,6 +63,16 @@ if [ ! -d "$TMPDIR_PROJECT/progress/subagents" ]; then
   exit 1
 fi
 echo "PASS: progress/subagents/ exists"
+
+# --- Test 5: bugs/ and ideas/ dirs exist ---
+for d in "bugs" "ideas"; do
+  if [ ! -d "$TMPDIR_PROJECT/$d" ]; then
+    echo "FAIL: $d/ not created"
+    rm -rf "$TMPDIR_PROJECT"
+    exit 1
+  fi
+done
+echo "PASS: bugs/ and ideas/ exist"
 
 rm -rf "$TMPDIR_PROJECT"
 

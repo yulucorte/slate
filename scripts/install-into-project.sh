@@ -13,7 +13,7 @@ fi
 cd "$TARGET"
 
 # Required directories
-mkdir -p progress/subagents features docs/superpowers/plans docs/superpowers/specs
+mkdir -p progress/subagents features bugs ideas docs/superpowers/plans docs/superpowers/specs
 
 # Copy templates without overwriting existing user content
 _copy_if_missing() {
@@ -40,6 +40,12 @@ _copy_if_missing "$PLUGIN_ROOT/templates/features/README.md"    "features/README
 _copy_if_missing "$PLUGIN_ROOT/templates/features/backlog.md"   "features/backlog.md"
 _copy_if_missing "$PLUGIN_ROOT/templates/features/in-progress.md" "features/in-progress.md"
 _copy_if_missing "$PLUGIN_ROOT/templates/features/done.md"      "features/done.md"
+
+_copy_if_missing "$PLUGIN_ROOT/templates/bugs/open.md"        "bugs/open.md"
+_copy_if_missing "$PLUGIN_ROOT/templates/bugs/fixed.md"       "bugs/fixed.md"
+
+_copy_if_missing "$PLUGIN_ROOT/templates/ideas/inbox.md"      "ideas/inbox.md"
+_copy_if_missing "$PLUGIN_ROOT/templates/ideas/triaged.md"    "ideas/triaged.md"
 
 echo ""
 echo "Done. Next steps:"

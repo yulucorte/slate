@@ -36,6 +36,10 @@ The install script copies templates into the current project. It is idempotent a
 | `features/backlog.md` | Not started |
 | `features/in-progress.md` | Active work |
 | `features/done.md` | Completed — never edit |
+| `bugs/open.md` | Open bugs |
+| `bugs/fixed.md` | Fixed bugs — never edit |
+| `ideas/inbox.md` | Raw captured ideas |
+| `ideas/triaged.md` | Idea triage decisions — never edit |
 
 ## Flow
 
@@ -44,6 +48,8 @@ The install script copies templates into the current project. It is idempotent a
 3. **Derive features** with `breaking-down-features`. Entries land in `features/backlog.md` or `features/in-progress.md`.
 4. **Execute** with `superpowers:subagent-driven-development`. Each dispatch is logged by `tracking-progress`.
 5. **Done** moves a feature to `done.md` only when ALL subtasks are `[x]` AND `Verified: <date>` is set.
+6. **Bugs** are tracked independently via `tracking-bugs`: reported to `bugs/open.md`, moved to `bugs/fixed.md` once `Fix`/`Commit`/`Fixed:` are set.
+7. **Ideas** raised mid-session land in `ideas/inbox.md` via `managing-ideas` (or `/idea`), with no friction. Running `/ideas-triage` groups them by area, and promotes selected ones into `features/backlog.md` via `breaking-down-features`.
 
 ## Philosophy
 
