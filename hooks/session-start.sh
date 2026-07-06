@@ -55,6 +55,22 @@ if [ -f "$PROJECT_ROOT/features/in-progress.md" ]; then
 fi
 [ -z "$INPROGRESS_INDEX" ] && INPROGRESS_INDEX="(ninguna feature en progreso)"
 
+# Bugs open + ideas pending: counts and IDs only, never full entry bodies —
+# same "index, not dump" principle as INPROGRESS_INDEX above. Skip cleanly
+# if bugs/ or ideas/ don't exist (projects installed before this feature).
+BUGS_LINE=""
+if [ -f "$PROJECT_ROOT/bugs/open.md" ]; then
+  BUG_IDS=$(grep -o '^## BUG-[0-9]\{3\}' "$PROJECT_ROOT/bugs/open.md" 2>/dev/null | sed 's/^## //' | paste -sd, - || true)
+  BUG_COUNT=$(printf '%s' "$BUG_IDS" | tr ',' '\n' | grep -c . || true)
+  [ "$BUG_COUNT" -gt 0 ] 2>/dev/null && BUGS_LINE="## Bugs abiertos: ${BUG_COUNT} (${BUG_IDS})"
+fi
+
+IDEAS_LINE=""
+if [ -f "$PROJECT_ROOT/ideas/inbox.md" ]; then
+  IDEA_COUNT=$(grep -c '^- ' "$PROJECT_ROOT/ideas/inbox.md" 2>/dev/null || true)
+  [ "${IDEA_COUNT:-0}" -gt 0 ] 2>/dev/null && IDEAS_LINE="## Ideas pendientes: ${IDEA_COUNT} (correr /ideas-triage)"
+fi
+
 # Last N non-empty lines of history.md.
 history_tail() {
   local n="$1"
@@ -71,6 +87,10 @@ ${INPROGRESS_INDEX}
 
 ## History (última)
 $(history_tail 1)"
+    [ -n "$BUGS_LINE" ] && CONTEXT="${CONTEXT}
+${BUGS_LINE}"
+    [ -n "$IDEAS_LINE" ] && CONTEXT="${CONTEXT}
+${IDEAS_LINE}"
     ;;
   *)  # startup | clear (and any unknown source, treated as a cold start)
     CURRENT_WORK=""
@@ -87,6 +107,10 @@ ${CURRENT_WORK}
 
 ## History (reciente)
 $(history_tail 2)"
+    [ -n "$BUGS_LINE" ] && CONTEXT="${CONTEXT}
+${BUGS_LINE}"
+    [ -n "$IDEAS_LINE" ] && CONTEXT="${CONTEXT}
+${IDEAS_LINE}"
     ;;
 esac
 
