@@ -93,8 +93,8 @@ json.dump(data, open(sys.argv[4], 'w'))
 " "$LOCK_BRANCH_OUT" "$WT_OUT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$LOCK_DIR/$SESSION_ID.lock" 2>/dev/null || true
 
 if [ -n "$CONTEXT" ]; then
-  CONTEXT_JSON=$(printf '%s' "$CONTEXT" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null \
-    || printf '"%s"' "$(printf '%s' "$CONTEXT" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n' ' ')")
-  printf '{"additionalContext": %s}\n' "$CONTEXT_JSON"
+  python3 -c "import json,sys
+print(json.dumps({'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext': sys.argv[1]}}))
+" "$CONTEXT" 2>/dev/null
 fi
 exit 0
