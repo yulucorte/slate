@@ -4,14 +4,16 @@
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh" }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh" },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-lock.sh" }
         ]
       }
     ],
     "SessionEnd": [
       {
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-end.sh" }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-end.sh" },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-lock-cleanup.sh" }
         ]
       }
     ],
@@ -20,6 +22,21 @@
         "matcher": "auto|manual",
         "hooks": [
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-heartbeat.sh" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-guardian.sh" }
         ]
       }
     ]
