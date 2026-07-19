@@ -115,6 +115,10 @@ case "$GIT_COMMON_DIR" in
   /*) : ;;
   *) GIT_COMMON_DIR="$PROJECT_ROOT/$GIT_COMMON_DIR" ;;
 esac
+# Resolve symlinks (e.g. macOS /var -> /private/var) so every worktree of
+# the same repo computes the identical physical path to the shared lock dir.
+GIT_COMMON_DIR="$(cd "$GIT_COMMON_DIR" 2>/dev/null && pwd -P)"
+[ -z "$GIT_COMMON_DIR" ] && exit 0
 
 LOCK_DIR="$GIT_COMMON_DIR/slate-sessions"
 mkdir -p "$LOCK_DIR" 2>/dev/null || exit 0
@@ -480,6 +484,8 @@ case "$GIT_COMMON_DIR" in
   /*) : ;;
   *) GIT_COMMON_DIR="$PROJECT_ROOT/$GIT_COMMON_DIR" ;;
 esac
+GIT_COMMON_DIR="$(cd "$GIT_COMMON_DIR" 2>/dev/null && pwd -P)"
+[ -z "$GIT_COMMON_DIR" ] && exit 0
 
 STDIN_JSON=""
 if [ ! -t 0 ]; then
@@ -642,6 +648,8 @@ case "$GIT_COMMON_DIR" in
   /*) : ;;
   *) GIT_COMMON_DIR="$CWD/$GIT_COMMON_DIR" ;;
 esac
+GIT_COMMON_DIR="$(cd "$GIT_COMMON_DIR" 2>/dev/null && pwd -P)"
+[ -z "$GIT_COMMON_DIR" ] && exit 0
 
 LOCK_FILE="$GIT_COMMON_DIR/slate-sessions/$SESSION_ID.lock"
 [ -f "$LOCK_FILE" ] || exit 0   # no claim on record, nothing to guard
@@ -757,6 +765,8 @@ case "$GIT_COMMON_DIR" in
   /*) : ;;
   *) GIT_COMMON_DIR="$PROJECT_ROOT/$GIT_COMMON_DIR" ;;
 esac
+GIT_COMMON_DIR="$(cd "$GIT_COMMON_DIR" 2>/dev/null && pwd -P)"
+[ -z "$GIT_COMMON_DIR" ] && exit 0
 
 STDIN_JSON=""
 if [ ! -t 0 ]; then
