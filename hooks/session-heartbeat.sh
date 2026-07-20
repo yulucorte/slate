@@ -1,33 +1,97 @@
 #!/usr/bin/env bash
 # PostToolUse hook (all tools): session-lock guardian, heartbeat refresh.
-# Touches this session's lock file so it isn't reaped as stale. Strictly
-# passive — PostToolUse cannot block anything, and this script never tries.
+# Two jobs, both strictly passive (PostToolUse cannot block, and this never tries):
+#   1. touch the lock so it isn't reaped as stale (liveness).
+#   2. mirror this session's CURRENT branch + tip (head SHA) into the lock, so a
+#      peer session can detect a branch built on top of this session's live work
+#      right after a commit. Uses the payload `cwd` so it is correct even when
+#      this session works inside an isolated worktree.
 set -uo pipefail
-
-PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
-cd "$PROJECT_ROOT" 2>/dev/null || exit 0
-git rev-parse --git-dir >/dev/null 2>&1 || exit 0
-
-GIT_COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null)"
-[ -z "$GIT_COMMON_DIR" ] && exit 0
-case "$GIT_COMMON_DIR" in
-  /*) : ;;
-  *) GIT_COMMON_DIR="$PROJECT_ROOT/$GIT_COMMON_DIR" ;;
-esac
-GIT_COMMON_DIR="$(cd "$GIT_COMMON_DIR" 2>/dev/null && pwd -P)"
-[ -z "$GIT_COMMON_DIR" ] && exit 0
 
 STDIN_JSON=""
 if [ ! -t 0 ]; then
   STDIN_JSON=$(cat 2>/dev/null || true)
 fi
-SESSION_ID=$(printf '%s' "$STDIN_JSON" | python3 -c "import sys,json
-try:
-    print((json.load(sys.stdin).get('session_id') or '').strip())
-except Exception:
-    print('')" 2>/dev/null || true)
-[ -z "$SESSION_ID" ] && exit 0
+[ -z "$STDIN_JSON" ] && exit 0
 
-LOCK_FILE="$GIT_COMMON_DIR/slate-sessions/$SESSION_ID.lock"
-[ -f "$LOCK_FILE" ] && touch "$LOCK_FILE" 2>/dev/null
+SG_JSON="$STDIN_JSON" python3 - <<'PY'
+import sys, os, json, subprocess
+
+try:
+    payload = json.loads(os.environ.get("SG_JSON") or "{}")
+except Exception:
+    sys.exit(0)
+
+sid = (payload.get("session_id") or "").strip()
+if not sid:
+    sys.exit(0)
+cwd = (payload.get("cwd") or "").strip() or os.environ.get("CLAUDE_PROJECT_ROOT") or os.getcwd()
+if not os.path.isdir(cwd):
+    sys.exit(0)
+
+
+def git(*a):
+    try:
+        return subprocess.run(
+            ["git", "-C", cwd, *a],
+            capture_output=True, text=True, timeout=10,
+        )
+    except Exception:
+        class _R:
+            returncode = 1
+            stdout = ""
+            stderr = ""
+        return _R()
+
+
+if git("rev-parse", "--git-dir").returncode != 0:
+    sys.exit(0)
+
+r = git("rev-parse", "--git-common-dir")
+gcd = r.stdout.strip()
+if not gcd:
+    sys.exit(0)
+if not os.path.isabs(gcd):
+    gcd = os.path.join(cwd, gcd)
+gcd = os.path.realpath(gcd)
+
+lock = os.path.join(gcd, "slate-sessions", sid + ".lock")
+if not os.path.isfile(lock):
+    sys.exit(0)  # this session never claimed a lock; nothing to refresh
+
+# 1. liveness: refresh mtime
+try:
+    os.utime(lock, None)
+except OSError:
+    pass
+
+# 2. mirror current branch/head (best effort, atomic write)
+try:
+    d = json.load(open(lock))
+except Exception:
+    sys.exit(0)
+
+br = git("branch", "--show-current").stdout.strip()
+hd = git("rev-parse", "HEAD").stdout.strip()
+changed = False
+if br and d.get("branch") != br:
+    d["branch"] = br
+    changed = True
+if hd and d.get("head") != hd:
+    d["head"] = hd
+    changed = True
+
+if changed:
+    tmp = lock + ".tmp"
+    try:
+        json.dump(d, open(tmp, "w"))
+        os.replace(tmp, lock)  # atomic
+    except Exception:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+
+sys.exit(0)
+PY
 exit 0

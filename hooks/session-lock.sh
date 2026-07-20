@@ -65,6 +65,7 @@ done
 CONTEXT=""
 LOCK_BRANCH_OUT="$CURRENT_BRANCH"
 WT_OUT=""
+HEAD_OUT="$(git rev-parse HEAD 2>/dev/null || true)"
 
 if [ "$COLLISION" -eq 1 ]; then
   SHORT_ID="${SESSION_ID:0:8}"
@@ -77,6 +78,7 @@ if [ "$COLLISION" -eq 1 ]; then
   if git worktree add "$WT_PATH" -b "$NEW_BRANCH" "$CURRENT_BRANCH" >/dev/null 2>&1; then
     LOCK_BRANCH_OUT="$NEW_BRANCH"
     WT_OUT="$WT_PATH"
+    HEAD_OUT="$(git -C "$WT_PATH" rev-parse HEAD 2>/dev/null || echo "$HEAD_OUT")"
     CONTEXT="Otra sesion de Claude Code ya esta activa en la rama '${CURRENT_BRANCH}' de este repo. Para no pisarle la rama, el indice de git, ni el stash, esta sesion quedo aislada en una copia separada del repo:
 
   ${WT_PATH}  (rama: ${NEW_BRANCH})
@@ -88,9 +90,9 @@ A partir de ahora, para CUALQUIER comando git (branch, commit, push, stash, etc.
 fi
 
 python3 -c "import json,sys
-data = {'branch': sys.argv[1], 'worktree': sys.argv[2], 'started_at': sys.argv[3]}
-json.dump(data, open(sys.argv[4], 'w'))
-" "$LOCK_BRANCH_OUT" "$WT_OUT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$LOCK_DIR/$SESSION_ID.lock" 2>/dev/null || true
+data = {'branch': sys.argv[1], 'worktree': sys.argv[2], 'head': sys.argv[3], 'started_at': sys.argv[4]}
+json.dump(data, open(sys.argv[5], 'w'))
+" "$LOCK_BRANCH_OUT" "$WT_OUT" "$HEAD_OUT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$LOCK_DIR/$SESSION_ID.lock" 2>/dev/null || true
 
 if [ -n "$CONTEXT" ]; then
   python3 -c "import json,sys
