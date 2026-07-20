@@ -30,3 +30,29 @@ Verificado 2026-07-19 con DOS sesiones reales de `claude` (no simuladas): sesió
 Bug real encontrado y corregido durante la verificación real: el formato plano `{"additionalContext": ...}` (usado también por el `session-start.sh` preexistente) se ejecuta sin error pero Claude Code lo descarta silenciosamente cuando compiten varios hooks de SessionStart de distintos plugins — solo sobrevive el formato envuelto `{"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": ...}}`. `session-lock.sh` ya usa el formato correcto. `session-start.sh` no se tocó (fuera del alcance del guardián) pero podría tener el mismo problema en la práctica — reportado a Felipe, no corregido por decisión de alcance.
 
 13/13 tests unitarios en `scripts/self-test.sh` en verde (incluye 6 archivos de test nuevos para este guardián). Cero rutas hardcodeadas (verificado por grep). Sin regresiones en skills/hooks preexistentes.
+
+## FEAT-002: Session guardian redesign — cerrar los puntos ciegos de BUG-002
+- **Status**: done
+- **Created**: 2026-07-19
+- **Updated**: 2026-07-19
+- **Spec**: docs/superpowers/specs/2026-07-19-session-guardian-redesign-design.md
+- **Plan**: inline en el spec
+- **Branch**: feat/feat-002-session-guardian-redesign
+- **Verification**: unit (git real: commits/ramas/worktrees reales + candados vivos simulados)
+- **Verified**: 2026-07-19
+- **Bug**: BUG-002
+
+### Subtasks
+- [x] FEAT-002.1: session-lock.sh registra el tip (head SHA) en el candado
+- [x] FEAT-002.2: session-guardian.sh — reencuadre a candados vivos ajenos (falso positivo #2 + re-chequeo continuo #4)
+- [x] FEAT-002.3: session-guardian.sh — detección rama-encima por ancestro de tip (#1)
+- [x] FEAT-002.4: session-guardian.sh — protección del stash compartido (#3)
+- [x] FEAT-002.5: session-heartbeat.sh mantiene branch+head fresco (usa cwd del payload)
+- [x] FEAT-002.6: tests con git real verdes (13/13 en scripts/self-test.sh)
+- [x] FEAT-002.7: bump plugin 1.3.0→1.4.0 + CHANGELOG
+- [x] FEAT-002.8: cerrar BUG-002 en el tracker (open→fixed)
+
+### Notes
+Sucede a FEAT-001 (no lo reemplaza) y cierra BUG-002. Reencuadre central: el guardián compara la rama/tip ACTUAL de esta sesión contra los candados de OTRAS sesiones vivas en cada operación git sensible, no contra la foto del arranque; el candado propio pasa a ser un espejo veraz (lo refresca el heartbeat), no una jaula. Bloquea (deny) solo ante choque confirmado con un peer vivo; en la duda avisa (additionalContext + systemMessage) sin bloquear. Detecta rama-encima (el HEAD a integrar desciende del tip vivo ajeno no publicado en main), misma-rama con peer vivo, y peligros del stash compartido (pop/apply sin ref explícita, drop/clear). Una sesión sola nunca se bloquea (elimina el falso positivo de 1.3.0). session-lock guarda el head SHA; el heartbeat lo mantiene fresco usando el cwd del payload (correcto incluso en un worktree aislado).
+
+Verificación por tests con git real (repos/commits/ramas/worktrees reales + candados vivos escritos a mano): 13/13 en `scripts/self-test.sh`, incluidos 10 casos del guardián (rama-encima sí/no, misma-rama, peer stale, stash pop genérico vs ref explícita vs sin peer, commit plano on-top permitido). La integración con Claude Code (disparo del hook + llegada del deny) no cambió respecto de FEAT-001, ya verificada en vivo con dos sesiones reales; por eso no se repitió la corrida de dos procesos reales. Plugin 1.4.0; activación vía `claude plugin update` / sesión nueva.
