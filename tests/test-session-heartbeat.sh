@@ -28,6 +28,17 @@ echo '{"session_id":"sess-none"}' | CLAUDE_PROJECT_ROOT="$REPO" bash "$HOOK"
 [ -f "$REPO/.git/slate-sessions/sess-none.lock" ] && { echo "FAIL: heartbeat created a lock file it shouldn't have"; exit 1; }
 echo "PASS: heartbeat is a no-op when this session has no lock"
 
+# --- Test: heartbeat mirrors current branch + head into the lock ---
+git -C "$REPO" checkout -qb mirror-branch
+MHEAD=$(git -C "$REPO" rev-parse HEAD)
+echo '{"branch": "stale", "worktree": "", "head": "deadbeef", "started_at": "2020-01-01T00:00:00Z"}' > "$REPO/.git/slate-sessions/sess-mir.lock"
+printf '{"session_id":"sess-mir","cwd":"%s"}' "$REPO" | bash "$HOOK"
+grep -q '"branch": "mirror-branch"' "$REPO/.git/slate-sessions/sess-mir.lock" \
+  || { echo "FAIL: heartbeat did not mirror current branch. Content: $(cat "$REPO/.git/slate-sessions/sess-mir.lock")"; exit 1; }
+grep -q "\"head\": \"$MHEAD\"" "$REPO/.git/slate-sessions/sess-mir.lock" \
+  || { echo "FAIL: heartbeat did not mirror current head. Content: $(cat "$REPO/.git/slate-sessions/sess-mir.lock")"; exit 1; }
+echo "PASS: heartbeat mirrors current branch and head into the lock"
+
 rm -rf "$REPO"
 echo ""
 echo "All session-heartbeat tests passed."

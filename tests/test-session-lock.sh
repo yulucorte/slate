@@ -23,6 +23,9 @@ LOCK_FILE="$REPO/.git/slate-sessions/sess-aaa.lock"
 [ -f "$LOCK_FILE" ] || { echo "FAIL: lock file not created. Got output: $OUTPUT"; exit 1; }
 grep -q '"branch": "master"' "$LOCK_FILE" 2>/dev/null || grep -q '"branch": "main"' "$LOCK_FILE" \
   || { echo "FAIL: lock does not record current branch. Content: $(cat "$LOCK_FILE")"; exit 1; }
+LHEAD=$(git -C "$REPO" rev-parse HEAD)
+grep -q "\"head\": \"$LHEAD\"" "$LOCK_FILE" \
+  || { echo "FAIL: lock does not record the current head tip. Content: $(cat "$LOCK_FILE")"; exit 1; }
 if printf '%s' "$OUTPUT" | grep -q additionalContext; then
   echo "FAIL: unexpected additionalContext on no-collision path: $OUTPUT"; exit 1
 fi

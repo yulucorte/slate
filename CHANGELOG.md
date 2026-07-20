@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.4.0 — 2026-07-19
+
+Redesigns the session guardian to close the four blind spots of BUG-002 that let
+a parallel session clobber another's work in real use (a branch built on top of
+another live session's commits reached production on merge). Ships FEAT-002.
+
+### Changed (`hooks/`)
+- `session-guardian.sh` — now decides by comparing THIS session's current
+  branch/tip against the locks of OTHER LIVE sessions on every sensitive git op
+  (`commit`/`push`/`merge`/`rebase`/`cherry-pick`/`stash`), instead of against a
+  startup snapshot of its own claim. It blocks (`deny`) only on a confirmed clash
+  with a live peer, and otherwise warns without blocking (`additionalContext` +
+  `systemMessage`, leaving the normal permission flow intact). New detections:
+  (1) a branch built on top of a live peer's un-mainlined tip (branch-on-top),
+  (2) a live peer on the same branch, (3) shared-stash hazards (`git stash
+  pop`/`apply` without an explicit `stash@{n}`, and `drop`/`clear`, are blocked
+  while a peer is live). A session acting alone is never blocked — this removes
+  the 1.3.0 false positive that blocked a deliberate branch change by the session
+  itself.
+- `session-lock.sh` — records the branch tip (`head` SHA) in the lock so peers
+  can detect a branch-on-top.
+- `session-heartbeat.sh` — besides refreshing liveness, mirrors this session's
+  current branch + tip into its lock (using the payload `cwd`, correct even in an
+  isolated worktree) so a peer sees fresh state right after a commit.
+
+### Note
+- Consumers must run `claude plugin update` (or start a fresh Claude Code
+  session) to pull 1.4.0 into the versioned plugin cache — same activation step
+  as any hook change (see BUG-001).
+
 ## 1.3.0 — 2026-07-19
 
 Ships FEAT-001 (session lock) to consumers. The hook scripts and `hooks.json`
