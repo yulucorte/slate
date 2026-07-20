@@ -25,9 +25,16 @@ See `docs/bug-format.md` for the full reference. Minimum:
 
 ## Lifecycle
 
-1. **Report**: user describes a bug. Assign next `BUG-XXX` (scan both `bugs/*.md`
-   for `^## BUG-NNN`, take `max + 1`). Append to `bugs/open.md` with
-   `Root cause: unknown` and `Fix: none` if not yet diagnosed.
+1. **Report**: user describes a bug. Assign next `BUG-XXX` with a bounded search
+   — do NOT read the files whole:
+
+       grep -hoE 'BUG-[0-9]+' bugs/open.md bugs/fixed.md 2>/dev/null \
+         | grep -oE '[0-9]+' | sort -n | tail -1
+
+   Next ID = that number + 1, zero-padded to 3 digits. Empty output → `BUG-001`.
+   Append to `bugs/open.md` with `Root cause: unknown` and `Fix: none` if not
+   yet diagnosed. Only live files are scanned; `fixed-archive-*.md` is never
+   needed (archiving moves oldest entries only — see `docs/archiving.md`).
 2. **Diagnose**: when the root cause is found, update the `Root cause` field
    in place (this is `open.md`, mutation is allowed here).
 3. **Fix**: when a fix is committed, fill `Fix`, `Commit`, set
@@ -38,11 +45,20 @@ See `docs/bug-format.md` for the full reference. Minimum:
 
 ## ID assignment
 
-Read both `bugs/open.md` and `bugs/fixed.md`, find the highest `BUG-NNN`,
-assign `BUG-NNN+1`. IDs are immutable and independent of `FEAT-XXX` numbering.
+Use the bounded search in step 1 of the Lifecycle above (grep over
+`bugs/open.md bugs/fixed.md`, take `max + 1`). Never read the files whole. IDs
+are immutable and independent of `FEAT-XXX` numbering.
+
+## Archiving fixed.md
+
+`bugs/fixed.md` is append-only. When it exceeds **40 entries**, move the
+**oldest** entries in bulk — leaving the ~20 most recent — into
+`bugs/fixed-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
+date). Entries move intact, oldest-first. This is the ONLY sanctioned way to
+shrink `fixed.md`; full reference in `docs/archiving.md`.
 
 ## Anti-patterns
 
 - DO NOT move a bug to `fixed.md` without `Fix`, `Commit`, and `Fixed:` all set.
-- DO NOT edit or delete an entry in `fixed.md`. File a new `BUG-XXX` instead.
+- DO NOT edit or delete an entry in `fixed.md`. File a new `BUG-XXX` instead. (Moving whole, untouched entries in bulk to `fixed-archive-YYYYHn.md` is the ONE exception — that changes where an entry lives, not what it says.)
 - DO NOT reuse a `BUG-XXX` ID after a bug is closed.

@@ -38,6 +38,17 @@ Append to `progress/current.md`:
 
 Move the entry block from `current.md` to `progress/history.md` under a heading `## YYYY-MM-DD — <session-summary>` (create the heading once per session, append entries to it).
 
+## Archiving history.md
+
+`history.md` is append-only and grows without bound. When it exceeds **40
+session blocks** (`## YYYY-MM-DD — <summary>` headings), move the **oldest**
+blocks in bulk — leaving the ~20 most recent — into
+`progress/history-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
+date). Blocks move **intact**, oldest-first. This is NOT summarizing (see the
+anti-pattern below): a bulk move preserves every word, it just relocates it.
+Full reference in `docs/archiving.md`. `session-start.sh` only tails the live
+`history.md`, so archiving never affects the injected recap.
+
 ## Format rules
 
 - Timestamps: ISO-8601 with timezone (`date -Iseconds`).
@@ -45,6 +56,6 @@ Move the entry block from `current.md` to `progress/history.md` under a heading 
 - Never delete from `history.md`. If something is wrong, append a correction with `## CORRECTION` heading.
 
 ## Anti-patterns
-- DO NOT summarize old history.md entries to keep the file short. Use git log for that.
+- DO NOT summarize or rewrite old history.md entries to keep the file short. If the file is large, ARCHIVE it (bulk move of intact blocks, see above) — do not compress or paraphrase, and do not lean on git log as a substitute for the record.
 - DO NOT skip writing the subagent report file because "I already updated current.md". Both are required.
 - DO NOT use relative timestamps ("yesterday", "earlier"). Always absolute.

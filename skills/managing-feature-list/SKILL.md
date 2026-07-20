@@ -36,7 +36,28 @@ Every feature MUST pass through `in-progress.md` so SessionStart can recover con
 
 ## ID assignment
 
-Read all three files, find the highest `FEAT-NNN`, assign `FEAT-NNN+1`. Subtasks: `FEAT-XXX.M` where `M` is the next integer within the feature. IDs are immutable.
+Do NOT read the files whole — that is the expensive mistake. Get the highest
+`FEAT-NNN` with a bounded search over the live files and add 1:
+
+    grep -hoE 'FEAT-[0-9]+' features/backlog.md features/in-progress.md features/done.md 2>/dev/null \
+      | grep -oE '[0-9]+' | sort -n | tail -1
+
+Next ID = that number + 1, zero-padded to 3 digits (e.g. `FEAT-043`). Empty
+output (no features yet) → `FEAT-001`. Subtasks: `FEAT-XXX.M` where `M` is the
+next integer within the feature. IDs are immutable.
+
+The search reads only the live files, never the `done-archive-*.md` files:
+archiving moves only the oldest (lowest-numbered) entries, so the highest number
+always stays live. See `docs/archiving.md`.
+
+## Archiving done.md
+
+`done.md` is append-only and would grow without bound. When it exceeds **40
+entries**, rotate before (or right after) appending the completed feature: move
+the **oldest** entries in bulk — leaving the ~20 most recent — into
+`features/done-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
+date). Entries move intact, oldest-first. This is the ONLY sanctioned way to
+shrink `done.md`; full reference in `docs/archiving.md`.
 
 ## When subtasks complete
 
@@ -45,6 +66,6 @@ Mark `[x]` and update `Updated:`. Do not move the feature until ALL subtasks are
 ## Anti-patterns
 
 - DO NOT mark `Status: done` without a `Verified:` date.
-- DO NOT delete or rewrite a feature in `done.md`. Append a successor.
+- DO NOT delete or rewrite a feature in `done.md`. Append a successor. (Moving whole, untouched entries in bulk to `done-archive-YYYYHn.md` is the ONE exception — that changes where a card lives, not what it says. See `docs/archiving.md`.)
 - DO NOT use statuses like "almost done" or "WIP". Only `backlog | in_progress | done`.
 - DO NOT skip `in-progress.md`. Even retroactive work routes through it.

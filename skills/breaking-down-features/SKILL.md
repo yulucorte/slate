@@ -14,7 +14,13 @@ description: Use when a Superpowers plan has just been approved, when the user d
 ## Steps
 
 1. Determine target file (default: `features/backlog.md`; if work starts now: `features/in-progress.md`).
-2. Read existing feature IDs across all three files. Compute next FEAT-XXX.
+2. Compute next FEAT-XXX with a bounded search — do NOT read the files whole:
+
+       grep -hoE 'FEAT-[0-9]+' features/backlog.md features/in-progress.md features/done.md 2>/dev/null \
+         | grep -oE '[0-9]+' | sort -n | tail -1
+
+   Next ID = that number + 1, zero-padded to 3 digits. Empty output → `FEAT-001`.
+   Only live files are scanned; archives are never needed (see `docs/archiving.md`).
 3. For each new feature, write the entry following `docs/feature-format.md`.
 4. If deriving from a Superpowers plan, the plan's tasks (`### Task N`) become subtasks `FEAT-XXX.N`. Preserve task numbering.
 5. If the feature goes to `in-progress.md`, suggest a branch name with format `feat/feat-NNN-<slug>` (derive slug from title: lowercase, hyphens, strip accents and non-alphanumerics). Features in `backlog.md` get `Branch: none`.

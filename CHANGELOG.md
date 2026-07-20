@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.5.0 — 2026-07-20
+
+Cuts `managing-feature-list` from ~84k tokens/invocation to <5k by (a) replacing
+full-file reads with a bounded `grep` for the next ID, and (b) adding an official
+by-entry-count archiving flow for the append-only files. Same ID fix applies to
+`tracking-bugs`. No change to the `FEAT-XXX` / `BUG-XXX` format; IDs stay
+immutable.
+
+### Changed (`skills/`)
+- `managing-feature-list` — next `FEAT-NNN` now comes from a bounded `grep` over
+  the live files (`backlog`/`in-progress`/`done`), never a whole-file read. New
+  "Archiving done.md" section; anti-pattern carve-out for the sanctioned bulk
+  move.
+- `breaking-down-features` — step 2 uses the same bounded `grep`.
+- `tracking-bugs` — next `BUG-NNN` via bounded `grep`; new archiving section for
+  `fixed.md`.
+- `tracking-progress` — new archiving section for `history.md`; reconciled the
+  "don't summarize history" anti-pattern (archiving is a bulk move of intact
+  blocks, not a summary).
+- `using-slate` — lists `*-archive-*.md` as canonical-but-never-loaded; forbids
+  whole-file reads for ID computation.
+
+### Added (`docs/`)
+- `docs/archiving.md` — the single reference for rotation: 40-entry threshold,
+  `*-archive-YYYYHn.md` naming, oldest-first invariant (keeps ID search correct),
+  and the bulk-move-≠-edit rule.
+- `docs/feature-format.md`, `docs/bug-format.md` — the "next ID" bullet is now the
+  bounded `grep`; movement tables gain the archive row.
+
+### Note
+- Consumers must run `claude plugin update` (or start a fresh Claude Code
+  session) to pull 1.5.0 into the versioned plugin cache — same activation step
+  as any skill change (see BUG-001).
+
 ## 1.4.0 — 2026-07-19
 
 Redesigns the session guardian to close the four blind spots of BUG-002 that let

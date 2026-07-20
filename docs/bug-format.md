@@ -19,7 +19,14 @@
 - IDs are zero-padded to 3 digits: `BUG-001`, `BUG-042`, `BUG-100`.
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Numbering is independent of `FEAT-XXX` — the two sequences never collide by design, but there is no requirement that they interleave.
-- To find the next available ID: scan both `bugs/*.md` files for `^## BUG-NNN` and take `max(NNN) + 1`.
+- To find the next available ID, use a bounded search — never read the files whole:
+
+      grep -hoE 'BUG-[0-9]+' bugs/open.md bugs/fixed.md 2>/dev/null \
+        | grep -oE '[0-9]+' | sort -n | tail -1
+
+  Next ID = that number + 1 (empty output → `001`). Only the live files are
+  scanned; `fixed-archive-*.md` is never needed because archiving moves oldest
+  entries only (see `docs/archiving.md`).
 
 ## Movement rules
 
@@ -27,6 +34,7 @@
 |---|---|---|
 | `open.md` | `fixed.md` | `Fix`, `Commit`, and `Fixed:` date all set |
 | Any | Edit `fixed.md` | **FORBIDDEN** — bugs don't reopen. File a new `BUG-XXX` if it recurs; reference the earlier one in Notes. |
+| `fixed.md` (>40 entries) | `fixed-archive-YYYYHn.md` | Bulk move of oldest entries only. NOT an edit — see [`docs/archiving.md`](archiving.md) |
 
 ## Examples
 

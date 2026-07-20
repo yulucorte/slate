@@ -14,6 +14,7 @@ Loads at SessionStart in projects initialized with slate.
 - `features/backlog.md` — desired but not started.
 - `features/in-progress.md` — actively being built.
 - `features/done.md` — completed. Editing entries here is FORBIDDEN.
+- `*-archive-YYYYHn.md` (`features/done-archive-*`, `bugs/fixed-archive-*`, `progress/history-archive-*`) — rotated history. Canonical but NEVER bulk-loaded in normal operation. `grep` them on demand only. See `docs/archiving.md`.
 
 ## Protocol
 
@@ -35,3 +36,5 @@ slate does NOT replace Superpowers.
 - DO NOT edit entries in `done.md`. Create a successor with `Supersedes: FEAT-XXX`.
 - DO NOT skip `tracking-progress`. Commit messages are too terse for cross-session recovery.
 - DO NOT read all four `features/*.md` files preemptively. Use what the hook injected plus targeted reads.
+- DO NOT read `done.md` whole to compute the next `FEAT-NNN`. Use the bounded `grep` in `managing-feature-list` / `docs/feature-format.md`. Same for `BUG-NNN`.
+- DO NOT bulk-read `*-archive-*.md` files. They exist to be `grep`ed on demand, never loaded into context.
