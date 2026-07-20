@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "slate-direct",
+  "description": "Persistent session state and feature tracking for Claude Code. Lightweight companion to Superpowers.",
+  "owner": {
+    "name": "Felipe Villacorte",
+    "url": "https://github.com/yulucorte"
+  },
+  "plugins": [
+    {
+      "name": "slate",
+      "description": "Persistent session state and feature tracking for Claude Code. Lightweight companion to Superpowers.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
