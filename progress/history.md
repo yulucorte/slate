@@ -109,3 +109,13 @@ _(none in flight)_
 - Tests con git real: 13/13 en scripts/self-test.sh (10 casos nuevos del guardián). Cero rutas hardcodeadas; permisos ejecutables verificados.
 - Plugin 1.3.0→1.4.0 + CHANGELOG (lección BUG-001: sin bump la caché no re-copia y el arreglo no llega a uso real).
 - Commit 894fa70 en rama feat/feat-002-session-guardian-redesign. BUG-002 movido a bugs/fixed.md (Fixed 2026-07-19); FEAT-002 en features/done.md, Verified 2026-07-19.
+
+## 2026-07-19 23:59:48 — Session end
+# Current work
+
+_(none in flight)_
+
+<!-- This file is auto-managed by slate:tracking-progress.
+     Entries here represent IN-FLIGHT work for the current session.
+     At session end, completed entries are moved to history.md;
+     orphaned entries become CARRY-OVER. -->
