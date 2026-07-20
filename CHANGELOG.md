@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.3.0 — 2026-07-19
+
+Ships FEAT-001 (session lock) to consumers. The hook scripts and `hooks.json`
+wiring for parallel-session protection landed in the repo but the plugin version
+was never bumped, so Claude Code kept serving the cached 1.2.0 copy (which lacks
+the new hooks) and the protection never loaded in real, marketplace-installed
+sessions. This release exists to trigger the cache re-copy. See BUG-001.
+
+### Added (`hooks/`)
+- `session-lock.sh` — SessionStart: writes a per-session lock under
+  `$(git rev-parse --git-common-dir)/slate-sessions/`; if another live session
+  already claims the current branch, auto-isolates into a new `git worktree`.
+- `session-heartbeat.sh` — PostToolUse: refreshes the lock's heartbeat so a live
+  session isn't reaped by the 15-minute stale TTL.
+- `session-guardian.sh` — PreToolUse(Bash): blocks `git commit`/`git push` when
+  the current branch differs from the one this session claimed at start.
+- `session-lock-cleanup.sh` — SessionEnd: releases this session's lock.
+- `hooks.json` now wires `PostToolUse` and `PreToolUse(Bash)` in addition to the
+  existing `SessionStart`, `SessionEnd`, `PreCompact` (these two event types were
+  removed in 1.0.0 and are reintroduced here only for the session guardian).
+
+### Note
+- Consumers must run `claude plugin update` (or start a fresh Claude Code
+  session) to pull 1.3.0 into the versioned plugin cache. Editing plugin source
+  without bumping the version has no effect — Claude Code keeps the cached copy.
+
 ## 1.2.0 — 2026-07-06
 
 Adds bug traceability and idea capture, following the same markdown-only,
