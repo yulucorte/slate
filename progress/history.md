@@ -74,3 +74,13 @@ _(none in flight)_
 - Verificación real (2026-07-19T19:03:55-05:00): dos sesiones reales de `claude -p --plugin-dir` sobre el mismo repo de prueba. Sesión B detectada y aislada en worktree (`slate-session/<id>`), confirmado en el transcript .jsonl (no solo por lo que dijo el modelo). Sesión aparte: guardián bloqueó un `git commit` real tras cambio de rama por debajo, confirmado por `permission_denials` y ausencia del commit en `git log`.
 - Bug real encontrado y corregido en el camino: el formato plano `{"additionalContext": ...}` se pierde silenciosamente cuando compiten varios hooks de SessionStart de distintos plugins; hace falta el formato envuelto `hookSpecificOutput.additionalContext`. Corregido en session-lock.sh. session-start.sh (preexistente, fuera de alcance) podría tener el mismo problema — reportado, no tocado.
 - FEAT-001 movido a features/done.md, Verified: 2026-07-19.
+
+## 2026-07-19 20:48:05 — Session end
+# Current work
+
+_(none in flight)_
+
+<!-- This file is auto-managed by slate:tracking-progress.
+     Entries here represent IN-FLIGHT work for the current session.
+     At session end, completed entries are moved to history.md;
+     orphaned entries become CARRY-OVER. -->
