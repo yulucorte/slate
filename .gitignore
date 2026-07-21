@@ -6,12 +6,12 @@ node_modules/
 .idea/
 .vscode/
 
-# Demo/runtime artifacts inside the plugin repo's own progress/ directory.
+# Demo/runtime artifacts inside the plugin repo's own docs/slate/progress/ dir.
 # (templates/progress/.gitignore is what end-user projects get; this section
 # protects the plugin repo itself from accidentally committing those files.)
-progress/hooks.log
-progress/hooks.log.*
-progress/.in-progress.snapshot
-progress/.done.snapshot
-progress/transcripts/
-progress/subagents/
+docs/slate/progress/hooks.log
+docs/slate/progress/hooks.log.*
+docs/slate/progress/.in-progress.snapshot
+docs/slate/progress/.done.snapshot
+docs/slate/progress/transcripts/
+docs/slate/progress/subagents/

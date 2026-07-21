@@ -13,10 +13,10 @@ description: Use when a Superpowers plan has just been approved, when the user d
 
 ## Steps
 
-1. Determine target file (default: `features/backlog.md`; if work starts now: `features/in-progress.md`).
+1. Determine target file (default: `docs/slate/features/backlog.md`; if work starts now: `docs/slate/features/in-progress.md`).
 2. Compute next FEAT-XXX with a bounded search — do NOT read the files whole:
 
-       grep -hoE 'FEAT-[0-9]+' features/backlog.md features/in-progress.md features/done.md 2>/dev/null \
+       grep -hoE 'FEAT-[0-9]+' docs/slate/features/backlog.md docs/slate/features/in-progress.md docs/slate/features/done.md 2>/dev/null \
          | grep -oE '[0-9]+' | sort -n | tail -1
 
    Next ID = that number + 1, zero-padded to 3 digits. Empty output → `FEAT-001`.

@@ -4,7 +4,8 @@ set -euo pipefail
 
 echo "[init.sh] starting..."
 
-mkdir -p progress/subagents features
+# Since slate 1.6.0 all state lives under docs/slate/.
+mkdir -p docs/slate/progress/subagents docs/slate/features
 
 _create_if_missing() {
   local file="$1" header="$2"
@@ -14,20 +15,20 @@ _create_if_missing() {
   fi
 }
 
-_create_if_missing "progress/current.md" "# Current work
+_create_if_missing "docs/slate/progress/current.md" "# Current work
 
 _(none in flight)_"
 
-_create_if_missing "progress/history.md" "# Session history
+_create_if_missing "docs/slate/progress/history.md" "# Session history
 "
 
-_create_if_missing "features/backlog.md" "# Backlog
+_create_if_missing "docs/slate/features/backlog.md" "# Backlog
 "
 
-_create_if_missing "features/in-progress.md" "# In progress
+_create_if_missing "docs/slate/features/in-progress.md" "# In progress
 "
 
-_create_if_missing "features/done.md" "# Done
+_create_if_missing "docs/slate/features/done.md" "# Done
 
 <!-- FORBIDDEN to edit existing entries. Create a successor with Supersedes: FEAT-XXX. -->
 "
@@ -44,7 +45,7 @@ _create_if_missing "features/done.md" "# Done
 
 # Generate codebase map (always regenerated)
 _codebase_map() {
-  local out="progress/codebase-map.md"
+  local out="docs/slate/progress/codebase-map.md"
   local now; now=$(date '+%Y-%m-%d %H:%M' 2>/dev/null || date)
   local tree_output
   if command -v tree >/dev/null 2>&1; then

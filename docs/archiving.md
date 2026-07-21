@@ -4,9 +4,9 @@ Slate keeps three append-only files that grow without bound:
 
 | Live file | Role |
 |---|---|
-| `features/done.md` | Completed features, full card each |
-| `bugs/fixed.md` | Fixed bugs, full card each |
-| `progress/history.md` | Session log |
+| `docs/slate/features/done.md` | Completed features, full card each |
+| `docs/slate/bugs/fixed.md` | Fixed bugs, full card each |
+| `docs/slate/progress/history.md` | Session log |
 
 Left unbounded, `done.md` reaches thousands of lines. Any skill that reads it
 whole pays that cost every time. This document defines the **one sanctioned way**
@@ -19,9 +19,9 @@ leaving the ~20 most recent — into a period archive:
 
 | Live file | Archive file |
 |---|---|
-| `features/done.md` | `features/done-archive-YYYYHn.md` |
-| `bugs/fixed.md` | `bugs/fixed-archive-YYYYHn.md` |
-| `progress/history.md` | `progress/history-archive-YYYYHn.md` |
+| `docs/slate/features/done.md` | `docs/slate/features/done-archive-YYYYHn.md` |
+| `docs/slate/bugs/fixed.md` | `docs/slate/bugs/fixed-archive-YYYYHn.md` |
+| `docs/slate/progress/history.md` | `docs/slate/progress/history-archive-YYYYHn.md` |
 
 - `YYYYHn`: `H1` = January–June, `H2` = July–December, by the date you archive.
   Example: archiving on 2026-07-20 appends to `*-archive-2026H2.md`.

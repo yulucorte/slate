@@ -21,7 +21,7 @@
 - Numbering is independent of `FEAT-XXX` — the two sequences never collide by design, but there is no requirement that they interleave.
 - To find the next available ID, use a bounded search — never read the files whole:
 
-      grep -hoE 'BUG-[0-9]+' bugs/open.md bugs/fixed.md 2>/dev/null \
+      grep -hoE 'BUG-[0-9]+' docs/slate/bugs/open.md docs/slate/bugs/fixed.md 2>/dev/null \
         | grep -oE '[0-9]+' | sort -n | tail -1
 
   Next ID = that number + 1 (empty output → `001`). Only the live files are

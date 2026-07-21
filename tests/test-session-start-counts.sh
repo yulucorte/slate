@@ -6,11 +6,11 @@ PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$PLUGIN_ROOT/hooks/session-start.sh"
 
 TMPDIR_PROJECT=$(mktemp -d)
-mkdir -p "$TMPDIR_PROJECT/progress" "$TMPDIR_PROJECT/features" "$TMPDIR_PROJECT/bugs" "$TMPDIR_PROJECT/ideas"
-touch "$TMPDIR_PROJECT/progress/history.md" "$TMPDIR_PROJECT/progress/current.md"
-touch "$TMPDIR_PROJECT/features/in-progress.md"
+mkdir -p "$TMPDIR_PROJECT/docs/slate/progress" "$TMPDIR_PROJECT/docs/slate/features" "$TMPDIR_PROJECT/docs/slate/bugs" "$TMPDIR_PROJECT/docs/slate/ideas"
+touch "$TMPDIR_PROJECT/docs/slate/progress/history.md" "$TMPDIR_PROJECT/docs/slate/progress/current.md"
+touch "$TMPDIR_PROJECT/docs/slate/features/in-progress.md"
 
-cat > "$TMPDIR_PROJECT/bugs/open.md" <<'EOF'
+cat > "$TMPDIR_PROJECT/docs/slate/bugs/open.md" <<'EOF'
 # Open bugs
 
 ## BUG-001: Login button unresponsive
@@ -20,7 +20,7 @@ cat > "$TMPDIR_PROJECT/bugs/open.md" <<'EOF'
 - **Status**: open
 EOF
 
-cat > "$TMPDIR_PROJECT/ideas/inbox.md" <<'EOF'
+cat > "$TMPDIR_PROJECT/docs/slate/ideas/inbox.md" <<'EOF'
 # Ideas inbox
 
 - 2026-07-01 10:00 — Add PDF export
@@ -36,8 +36,8 @@ echo "PASS: idea count injected correctly"
 
 # --- Test: no bugs/ideas dirs -> hook does not error, no bug/idea lines ---
 TMPDIR_PROJECT2=$(mktemp -d)
-mkdir -p "$TMPDIR_PROJECT2/progress" "$TMPDIR_PROJECT2/features"
-touch "$TMPDIR_PROJECT2/progress/history.md" "$TMPDIR_PROJECT2/progress/current.md" "$TMPDIR_PROJECT2/features/in-progress.md"
+mkdir -p "$TMPDIR_PROJECT2/docs/slate/progress" "$TMPDIR_PROJECT2/docs/slate/features"
+touch "$TMPDIR_PROJECT2/docs/slate/progress/history.md" "$TMPDIR_PROJECT2/docs/slate/progress/current.md" "$TMPDIR_PROJECT2/docs/slate/features/in-progress.md"
 
 OUTPUT2=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_ROOT="$TMPDIR_PROJECT2" bash "$HOOK")
 echo "$OUTPUT2" | grep -q "Bugs abiertos" && { echo "FAIL: bug line present when bugs/ absent"; exit 1; }
@@ -47,11 +47,11 @@ echo "PASS: no bug/idea lines when directories absent, hook did not error"
 # --- Test: bugs/open.md and ideas/inbox.md exist with template-only content
 # (freshly installed, no real bugs/ideas yet) -> no count lines emitted ---
 TMPDIR_PROJECT3=$(mktemp -d)
-mkdir -p "$TMPDIR_PROJECT3/progress" "$TMPDIR_PROJECT3/features" "$TMPDIR_PROJECT3/bugs" "$TMPDIR_PROJECT3/ideas"
-touch "$TMPDIR_PROJECT3/progress/history.md" "$TMPDIR_PROJECT3/progress/current.md" "$TMPDIR_PROJECT3/features/in-progress.md"
+mkdir -p "$TMPDIR_PROJECT3/docs/slate/progress" "$TMPDIR_PROJECT3/docs/slate/features" "$TMPDIR_PROJECT3/docs/slate/bugs" "$TMPDIR_PROJECT3/docs/slate/ideas"
+touch "$TMPDIR_PROJECT3/docs/slate/progress/history.md" "$TMPDIR_PROJECT3/docs/slate/progress/current.md" "$TMPDIR_PROJECT3/docs/slate/features/in-progress.md"
 
-cp "$PLUGIN_ROOT/templates/bugs/open.md" "$TMPDIR_PROJECT3/bugs/open.md"
-cp "$PLUGIN_ROOT/templates/ideas/inbox.md" "$TMPDIR_PROJECT3/ideas/inbox.md"
+cp "$PLUGIN_ROOT/templates/bugs/open.md" "$TMPDIR_PROJECT3/docs/slate/bugs/open.md"
+cp "$PLUGIN_ROOT/templates/ideas/inbox.md" "$TMPDIR_PROJECT3/docs/slate/ideas/inbox.md"
 
 OUTPUT3=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_ROOT="$TMPDIR_PROJECT3" bash "$HOOK")
 echo "$OUTPUT3" | grep -q "Bugs abiertos" && { echo "FAIL: bug line present for template-only bugs/open.md. Got: $OUTPUT3"; exit 1; }

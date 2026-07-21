@@ -6,8 +6,8 @@ set -uo pipefail
 
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 
-CURRENT="$PROJECT_ROOT/progress/current.md"
-HISTORY="$PROJECT_ROOT/progress/history.md"
+CURRENT="$PROJECT_ROOT/docs/slate/progress/current.md"
+HISTORY="$PROJECT_ROOT/docs/slate/progress/history.md"
 
 if [ ! -f "$CURRENT" ]; then
   exit 0
@@ -40,5 +40,5 @@ EOF
 
 # Auto-commit (silent, non-blocking)
 cd "$PROJECT_ROOT" 2>/dev/null || exit 0
-git add progress/ features/ 2>/dev/null || true
+git add docs/slate/ 2>/dev/null || true
 git commit -m "auto: session-end checkpoint" --allow-empty --no-verify --quiet 2>/dev/null || true

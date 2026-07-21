@@ -1,16 +1,16 @@
 # Idea Format Reference
 
-## Inbox entry (ideas/inbox.md)
+## Inbox entry (docs/slate/ideas/inbox.md)
 
 Deliberately minimal — capture must never interrupt flow.
 
     - YYYY-MM-DD HH:MM — <raw idea text, verbatim>
 
-No area, priority, or status at capture time. `ideas/inbox.md` is a mutable
+No area, priority, or status at capture time. `docs/slate/ideas/inbox.md` is a mutable
 working queue: lines are removed once triaged (promoted or archived).
 Lines left `kept-pending` stay in the queue untouched.
 
-## Triaged entry (ideas/triaged.md)
+## Triaged entry (docs/slate/ideas/triaged.md)
 
 Append-only. This file is the permanent triage record — `inbox.md` is not.
 

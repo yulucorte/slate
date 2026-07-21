@@ -29,27 +29,27 @@ The install script copies templates into the current project. It is idempotent a
 | Path | Purpose |
 |---|---|
 | `AGENTS.md` | Protocol the agent reads at session start |
-| `init.sh` | Runs on every SessionStart to refresh `progress/codebase-map.md` |
-| `progress/current.md` | In-flight work for the current session |
-| `progress/history.md` | Append-only session log |
-| `progress/subagents/` | One file per dispatched subagent |
-| `features/backlog.md` | Not started |
-| `features/in-progress.md` | Active work |
-| `features/done.md` | Completed — never edit |
-| `bugs/open.md` | Open bugs |
-| `bugs/fixed.md` | Fixed bugs — never edit |
-| `ideas/inbox.md` | Raw captured ideas |
-| `ideas/triaged.md` | Idea triage decisions — never edit |
+| `init.sh` | Runs on every SessionStart to refresh `docs/slate/progress/codebase-map.md` |
+| `docs/slate/progress/current.md` | In-flight work for the current session |
+| `docs/slate/progress/history.md` | Append-only session log |
+| `docs/slate/progress/subagents/` | One file per dispatched subagent |
+| `docs/slate/features/backlog.md` | Not started |
+| `docs/slate/features/in-progress.md` | Active work |
+| `docs/slate/features/done.md` | Completed — never edit |
+| `docs/slate/bugs/open.md` | Open bugs |
+| `docs/slate/bugs/fixed.md` | Fixed bugs — never edit |
+| `docs/slate/ideas/inbox.md` | Raw captured ideas |
+| `docs/slate/ideas/triaged.md` | Idea triage decisions — never edit |
 
 ## Flow
 
 1. **Brainstorm** with `superpowers:brainstorming`. Spec goes to `docs/superpowers/specs/`.
 2. **Plan** with `superpowers:writing-plans`. Plan goes to `docs/superpowers/plans/`.
-3. **Derive features** with `breaking-down-features`. Entries land in `features/backlog.md` or `features/in-progress.md`.
+3. **Derive features** with `breaking-down-features`. Entries land in `docs/slate/features/backlog.md` or `docs/slate/features/in-progress.md`.
 4. **Execute** with `superpowers:subagent-driven-development`. Each dispatch is logged by `tracking-progress`.
 5. **Done** moves a feature to `done.md` only when ALL subtasks are `[x]` AND `Verified: <date>` is set.
-6. **Bugs** are tracked independently via `tracking-bugs`: reported to `bugs/open.md`, moved to `bugs/fixed.md` once `Fix`/`Commit`/`Fixed:` are set.
-7. **Ideas** raised mid-session land in `ideas/inbox.md` via `managing-ideas` (or `/idea`), with no friction. Running `/ideas-triage` groups them by area, and promotes selected ones into `features/backlog.md` via `breaking-down-features`.
+6. **Bugs** are tracked independently via `tracking-bugs`: reported to `docs/slate/bugs/open.md`, moved to `docs/slate/bugs/fixed.md` once `Fix`/`Commit`/`Fixed:` are set.
+7. **Ideas** raised mid-session land in `docs/slate/ideas/inbox.md` via `managing-ideas` (or `/idea`), with no friction. Running `/ideas-triage` groups them by area, and promotes selected ones into `docs/slate/features/backlog.md` via `breaking-down-features`.
 
 ## Philosophy
 

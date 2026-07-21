@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.6.0 — 2026-07-21
+
+Moves all slate state out of the repo root and under a single `docs/slate/`
+directory, so an installed project's root stays clean. The four state folders
+`progress/`, `features/`, `bugs/`, `ideas/` now live at `docs/slate/progress/`,
+`docs/slate/features/`, `docs/slate/bugs/`, `docs/slate/ideas/`. Superpowers
+artifacts (`docs/superpowers/`) and the plugin's own reference docs are
+unchanged. Existing projects self-migrate automatically — no manual steps.
+
+### Added
+- Auto-migrator in `session-start.sh` (`slate_migrate_layout`): on the next
+  session in any project still using the old root layout, the four state dirs
+  are moved into `docs/slate/` (via `git mv` when tracked, plain `mv`
+  otherwise). Idempotent and content-preserving; runs before anything reads
+  state.
+- `tests/test-migration.sh` — covers git-tracked migration, idempotency, and the
+  non-git `mv` path.
+
+### Changed
+- `hooks/` — `session-start.sh`, `session-end.sh`, `pre-compact.sh` read/write
+  under `docs/slate/`; SessionEnd auto-commit now stages `docs/slate/`.
+- `init.sh`, `templates/init.sh`, `scripts/install-into-project.sh` create and
+  seed state under `docs/slate/`.
+- `skills/*`, `docs/*`, `templates/AGENTS.md`, `AGENTS.md`, `README.md`,
+  `.gitignore` — every state path reference now points at `docs/slate/`.
+- Historical `docs/superpowers/specs` and `docs/superpowers/plans` left intact
+  (they record what was built at the time).
+
 ## 1.5.0 — 2026-07-20
 
 Cuts `managing-feature-list` from ~84k tokens/invocation to <5k by (a) replacing

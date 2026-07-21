@@ -1,6 +1,6 @@
 ---
 name: tracking-progress
-description: Use when dispatching a subagent, when receiving a subagent report, when starting or finishing a task, or when the user asks "where are we". Maintains progress/current.md (live state), progress/history.md (append-only), and progress/subagents/*.md (per-subagent reports).
+description: Use when dispatching a subagent, when receiving a subagent report, when starting or finishing a task, or when the user asks "where are we". Maintains docs/slate/progress/current.md (live state), docs/slate/progress/history.md (append-only), and docs/slate/progress/subagents/*.md (per-subagent reports).
 ---
 
 # Tracking progress
@@ -16,7 +16,7 @@ description: Use when dispatching a subagent, when receiving a subagent report, 
 
 ### Before dispatching subagent
 
-Append to `progress/current.md`:
+Append to `docs/slate/progress/current.md`:
 
     ### <timestamp ISO-8601> — Dispatched <subagent-type>
     - **Task**: <one-line task summary>
@@ -26,24 +26,24 @@ Append to `progress/current.md`:
 
 ### After subagent returns
 
-1. Write the FULL subagent report to `progress/subagents/<task-slug>-<status>.md`. Filename example: `progress/subagents/feat-001-2-jwt-DONE.md`.
+1. Write the FULL subagent report to `docs/slate/progress/subagents/<task-slug>-<status>.md`. Filename example: `docs/slate/progress/subagents/feat-001-2-jwt-DONE.md`.
 2. Update the corresponding entry in `current.md`:
 
     ### <timestamp> — <subagent-type> returned
     - **Status**: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
-    - **Report**: progress/subagents/<task-slug>-<status>.md
+    - **Report**: docs/slate/progress/subagents/<task-slug>-<status>.md
     - **Concerns** (if any): <brief>
 
 ### At task complete
 
-Move the entry block from `current.md` to `progress/history.md` under a heading `## YYYY-MM-DD — <session-summary>` (create the heading once per session, append entries to it).
+Move the entry block from `current.md` to `docs/slate/progress/history.md` under a heading `## YYYY-MM-DD — <session-summary>` (create the heading once per session, append entries to it).
 
 ## Archiving history.md
 
 `history.md` is append-only and grows without bound. When it exceeds **40
 session blocks** (`## YYYY-MM-DD — <summary>` headings), move the **oldest**
 blocks in bulk — leaving the ~20 most recent — into
-`progress/history-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
+`docs/slate/progress/history-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
 date). Blocks move **intact**, oldest-first. This is NOT summarizing (see the
 anti-pattern below): a bulk move preserves every word, it just relocates it.
 Full reference in `docs/archiving.md`. `session-start.sh` only tails the live
@@ -52,7 +52,7 @@ Full reference in `docs/archiving.md`. `session-start.sh` only tails the live
 ## Format rules
 
 - Timestamps: ISO-8601 with timezone (`date -Iseconds`).
-- Filenames in `progress/subagents/`: lowercase, hyphenated, end with status in caps.
+- Filenames in `docs/slate/progress/subagents/`: lowercase, hyphenated, end with status in caps.
 - Never delete from `history.md`. If something is wrong, append a correction with `## CORRECTION` heading.
 
 ## Anti-patterns

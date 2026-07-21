@@ -224,3 +224,13 @@ _(none in flight)_
      Entries here represent IN-FLIGHT work for the current session.
      At session end, completed entries are moved to history.md;
      orphaned entries become CARRY-OVER. -->
+
+## 2026-07-21 08:49:22 — SessionStart init.sh
+[init.sh] starting...
+[init.sh] codebase map -> progress/codebase-map.md
+[init.sh] OK
+
+## 2026-07-21 09:27:31 — SessionStart init.sh
+[init.sh] starting...
+[init.sh] codebase map -> docs/slate/progress/codebase-map.md
+[init.sh] OK

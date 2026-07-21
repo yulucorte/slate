@@ -1,6 +1,6 @@
 ---
 name: using-slate
-description: Use when starting any session in a project that contains progress/ or features/ directories. Establishes the protocol for reading current state, updating progress, and respecting the feature list as canonical scope.
+description: Use when starting any session in a project that contains docs/slate/progress/ or docs/slate/features/ directories. Establishes the protocol for reading current state, updating progress, and respecting the feature list as canonical scope.
 ---
 
 # Using slate
@@ -9,32 +9,32 @@ Loads at SessionStart in projects initialized with slate.
 
 ## State files (canonical)
 
-- `progress/current.md` — work in flight. Read at start, update during, drain at end.
-- `progress/history.md` — append-only log. Never edit existing entries.
-- `features/backlog.md` — desired but not started.
-- `features/in-progress.md` — actively being built.
-- `features/done.md` — completed. Editing entries here is FORBIDDEN.
-- `*-archive-YYYYHn.md` (`features/done-archive-*`, `bugs/fixed-archive-*`, `progress/history-archive-*`) — rotated history. Canonical but NEVER bulk-loaded in normal operation. `grep` them on demand only. See `docs/archiving.md`.
+- `docs/slate/progress/current.md` — work in flight. Read at start, update during, drain at end.
+- `docs/slate/progress/history.md` — append-only log. Never edit existing entries.
+- `docs/slate/features/backlog.md` — desired but not started.
+- `docs/slate/features/in-progress.md` — actively being built.
+- `docs/slate/features/done.md` — completed. Editing entries here is FORBIDDEN.
+- `*-archive-YYYYHn.md` (`docs/slate/features/done-archive-*`, `docs/slate/bugs/fixed-archive-*`, `docs/slate/progress/history-archive-*`) — rotated history. Canonical but NEVER bulk-loaded in normal operation. `grep` them on demand only. See `docs/archiving.md`.
 
 ## Protocol
 
 1. **Session start**: the hook already injected recent history and active features. Do not re-read those files unless you need detail beyond what was injected.
 2. **Before dispatching a subagent**: invoke `tracking-progress` to log the dispatch.
 3. **Before marking work done**: invoke `managing-feature-list`. A feature only moves to `done.md` when ALL subtasks are `[x]` AND `Verified: <date>` is set.
-4. **Session end**: append the contents of `progress/current.md` to `progress/history.md` under a `## YYYY-MM-DD — <summary>` heading, then clear `current.md`.
+4. **Session end**: append the contents of `docs/slate/progress/current.md` to `docs/slate/progress/history.md` under a `## YYYY-MM-DD — <summary>` heading, then clear `current.md`.
 
 ## Interop with Superpowers
 
 slate does NOT replace Superpowers.
 - `superpowers:brainstorming` → spec in `docs/superpowers/specs/`.
 - `superpowers:writing-plans` → plan in `docs/superpowers/plans/`.
-- After the plan is approved, invoke `breaking-down-features` to derive entries in `features/backlog.md`.
+- After the plan is approved, invoke `breaking-down-features` to derive entries in `docs/slate/features/backlog.md`.
 
 ## Anti-patterns
 
 - DO NOT introduce JSON, YAML, or SQLite alternatives. Markdown is the contract.
 - DO NOT edit entries in `done.md`. Create a successor with `Supersedes: FEAT-XXX`.
 - DO NOT skip `tracking-progress`. Commit messages are too terse for cross-session recovery.
-- DO NOT read all four `features/*.md` files preemptively. Use what the hook injected plus targeted reads.
+- DO NOT read all four `docs/slate/features/*.md` files preemptively. Use what the hook injected plus targeted reads.
 - DO NOT read `done.md` whole to compute the next `FEAT-NNN`. Use the bounded `grep` in `managing-feature-list` / `docs/feature-format.md`. Same for `BUG-NNN`.
 - DO NOT bulk-read `*-archive-*.md` files. They exist to be `grep`ed on demand, never loaded into context.

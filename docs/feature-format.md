@@ -40,7 +40,7 @@ The `Branch:` field declares the git branch that carries this feature's commits.
 - Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
 - To find the next available ID, use a bounded search — never read the files whole:
 
-      grep -hoE 'FEAT-[0-9]+' features/backlog.md features/in-progress.md features/done.md 2>/dev/null \
+      grep -hoE 'FEAT-[0-9]+' docs/slate/features/backlog.md docs/slate/features/in-progress.md docs/slate/features/done.md 2>/dev/null \
         | grep -oE '[0-9]+' | sort -n | tail -1
 
   Next ID = that number + 1 (empty output → `001`). Only the live files are

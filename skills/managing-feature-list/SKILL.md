@@ -1,11 +1,11 @@
 ---
 name: managing-feature-list
-description: Use when the user defines new scope, when about to mark anything complete, when the user asks "what's left", or when moving work between backlog/in-progress/done. Maintains features/backlog.md, features/in-progress.md, features/done.md.
+description: Use when the user defines new scope, when about to mark anything complete, when the user asks "what's left", or when moving work between backlog/in-progress/done. Maintains docs/slate/features/backlog.md, docs/slate/features/in-progress.md, docs/slate/features/done.md.
 ---
 
 # Managing the feature list
 
-The three files in `features/` are the canonical scope. Plans (`docs/superpowers/plans/`) describe HOW; the feature list describes WHAT and WHETHER IT WORKS.
+The three files in `docs/slate/features/` are the canonical scope. Plans (`docs/superpowers/plans/`) describe HOW; the feature list describes WHAT and WHETHER IT WORKS.
 
 ## Format of a feature entry
 
@@ -39,7 +39,7 @@ Every feature MUST pass through `in-progress.md` so SessionStart can recover con
 Do NOT read the files whole — that is the expensive mistake. Get the highest
 `FEAT-NNN` with a bounded search over the live files and add 1:
 
-    grep -hoE 'FEAT-[0-9]+' features/backlog.md features/in-progress.md features/done.md 2>/dev/null \
+    grep -hoE 'FEAT-[0-9]+' docs/slate/features/backlog.md docs/slate/features/in-progress.md docs/slate/features/done.md 2>/dev/null \
       | grep -oE '[0-9]+' | sort -n | tail -1
 
 Next ID = that number + 1, zero-padded to 3 digits (e.g. `FEAT-043`). Empty
@@ -55,7 +55,7 @@ always stays live. See `docs/archiving.md`.
 `done.md` is append-only and would grow without bound. When it exceeds **40
 entries**, rotate before (or right after) appending the completed feature: move
 the **oldest** entries in bulk — leaving the ~20 most recent — into
-`features/done-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
+`docs/slate/features/done-archive-YYYYHn.md` (`H1` = Jan–Jun, `H2` = Jul–Dec, by today's
 date). Entries move intact, oldest-first. This is the ONLY sanctioned way to
 shrink `done.md`; full reference in `docs/archiving.md`.
 

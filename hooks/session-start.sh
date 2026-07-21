@@ -4,7 +4,7 @@
 #
 # Design notes:
 #  - Does NOT dump the SKILL.md (the protocol loads via the Skill tool on demand).
-#  - Does NOT dump features/backlog.md (read on demand via managing-feature-list).
+#  - Does NOT dump docs/slate/features/backlog.md (read on demand via managing-feature-list).
 #  - in-progress is injected as an INDEX (one line per FEAT), not full blocks.
 #  - history is capped to the last line(s), not tail -30.
 #  - Behaviour differs by session source (startup|clear vs compact|resume).
@@ -12,6 +12,33 @@ set -uo pipefail
 
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}}"
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
+
+# Since slate 1.6.0 all state lives under docs/slate/. Auto-migrate projects
+# still using the old repo-root layout (progress/ features/ bugs/ ideas/).
+# Idempotent: only moves a dir when the old one exists and the new one doesn't.
+slate_migrate_layout() {
+  local d
+  [ -d "$PROJECT_ROOT/docs/slate/progress" ] && \
+  [ -d "$PROJECT_ROOT/docs/slate/features" ] && return 0  # already migrated
+  local moved=0
+  for d in progress features bugs ideas; do
+    if [ -d "$PROJECT_ROOT/$d" ] && [ ! -e "$PROJECT_ROOT/docs/slate/$d" ]; then
+      mkdir -p "$PROJECT_ROOT/docs/slate" 2>/dev/null || true
+      if git -C "$PROJECT_ROOT" rev-parse >/dev/null 2>&1; then
+        git -C "$PROJECT_ROOT" mv "$d" "docs/slate/$d" 2>/dev/null \
+          || mv "$PROJECT_ROOT/$d" "$PROJECT_ROOT/docs/slate/$d" 2>/dev/null || true
+      else
+        mv "$PROJECT_ROOT/$d" "$PROJECT_ROOT/docs/slate/$d" 2>/dev/null || true
+      fi
+      [ -d "$PROJECT_ROOT/docs/slate/$d" ] && moved=1
+    fi
+  done
+  [ "$moved" -eq 1 ] && printf 'slate: migrated state to docs/slate/\n' >&2 || true
+}
+slate_migrate_layout
+
+# Single source of truth for where slate state lives (since 1.6.0).
+STATE="$PROJECT_ROOT/docs/slate"
 
 # Claude Code passes the SessionStart payload as JSON on stdin; the "source"
 # field is one of: startup | clear | resume | compact. Read it so we can inject
@@ -28,7 +55,7 @@ except Exception:
 [ -z "$SOURCE" ] && SOURCE="startup"
 
 # Only operate if this project has been initialized with slate
-if [ ! -d "$PROJECT_ROOT/progress" ] || [ ! -d "$PROJECT_ROOT/features" ]; then
+if [ ! -d "$STATE/progress" ] || [ ! -d "$STATE/features" ]; then
   exit 0
 fi
 
@@ -38,20 +65,20 @@ if [ -f "$PROJECT_ROOT/init.sh" ]; then
     echo ""
     echo "## $(date '+%Y-%m-%d %H:%M:%S') — SessionStart init.sh"
     bash "$PROJECT_ROOT/init.sh" 2>&1 || true
-  } >> "$PROJECT_ROOT/progress/history.md" 2>/dev/null || true
+  } >> "$STATE/progress/history.md" 2>/dev/null || true
 fi
 
 # in-progress as an INDEX: one line per FEAT (ID + title + status). Full
 # descriptions, criteria and subtasks stay in the file; the agent opens it when
 # it actually works that feature.
 INPROGRESS_INDEX=""
-if [ -f "$PROJECT_ROOT/features/in-progress.md" ]; then
+if [ -f "$STATE/features/in-progress.md" ]; then
   INPROGRESS_INDEX=$(awk '
     function flush(){ if(id!=""){ printf "- %s%s\n", id, (st!=""?" ["st"]":"") } }
     /^## FEAT-/ { flush(); id=substr($0,4); st=""; next }
     /^- \*\*Status\*\*:/ { s=$0; sub(/^- \*\*Status\*\*:[ ]*/,"",s); st=s }
     END { flush() }
-  ' "$PROJECT_ROOT/features/in-progress.md" 2>/dev/null || true)
+  ' "$STATE/features/in-progress.md" 2>/dev/null || true)
 fi
 [ -z "$INPROGRESS_INDEX" ] && INPROGRESS_INDEX="(ninguna feature en progreso)"
 
@@ -59,23 +86,23 @@ fi
 # same "index, not dump" principle as INPROGRESS_INDEX above. Skip cleanly
 # if bugs/ or ideas/ don't exist (projects installed before this feature).
 BUGS_LINE=""
-if [ -f "$PROJECT_ROOT/bugs/open.md" ]; then
-  BUG_IDS=$(grep -o '^## BUG-[0-9]\{3\}' "$PROJECT_ROOT/bugs/open.md" 2>/dev/null | sed 's/^## //' | paste -sd, - || true)
+if [ -f "$STATE/bugs/open.md" ]; then
+  BUG_IDS=$(grep -o '^## BUG-[0-9]\{3\}' "$STATE/bugs/open.md" 2>/dev/null | sed 's/^## //' | paste -sd, - || true)
   BUG_COUNT=$(printf '%s' "$BUG_IDS" | tr ',' '\n' | grep -c . || true)
   [ "${BUG_COUNT:-0}" -gt 0 ] 2>/dev/null && BUGS_LINE="## Bugs abiertos: ${BUG_COUNT} (${BUG_IDS})"
 fi
 
 IDEAS_LINE=""
-if [ -f "$PROJECT_ROOT/ideas/inbox.md" ]; then
-  IDEA_COUNT=$(grep -c '^- ' "$PROJECT_ROOT/ideas/inbox.md" 2>/dev/null || true)
+if [ -f "$STATE/ideas/inbox.md" ]; then
+  IDEA_COUNT=$(grep -c '^- ' "$STATE/ideas/inbox.md" 2>/dev/null || true)
   [ "${IDEA_COUNT:-0}" -gt 0 ] 2>/dev/null && IDEAS_LINE="## Ideas pendientes: ${IDEA_COUNT} (correr /ideas-triage)"
 fi
 
 # Last N non-empty lines of history.md.
 history_tail() {
   local n="$1"
-  [ -f "$PROJECT_ROOT/progress/history.md" ] || return 0
-  grep -v '^[[:space:]]*$' "$PROJECT_ROOT/progress/history.md" 2>/dev/null | tail -n "$n" || true
+  [ -f "$STATE/progress/history.md" ] || return 0
+  grep -v '^[[:space:]]*$' "$STATE/progress/history.md" 2>/dev/null | tail -n "$n" || true
 }
 
 case "$SOURCE" in
@@ -94,8 +121,8 @@ ${IDEAS_LINE}"
     ;;
   *)  # startup | clear (and any unknown source, treated as a cold start)
     CURRENT_WORK=""
-    if [ -f "$PROJECT_ROOT/progress/current.md" ]; then
-      CURRENT_WORK=$(cat "$PROJECT_ROOT/progress/current.md" 2>/dev/null || true)
+    if [ -f "$STATE/progress/current.md" ]; then
+      CURRENT_WORK=$(cat "$STATE/progress/current.md" 2>/dev/null || true)
     fi
     CONTEXT="Slate activo — estado abajo. Protocolo completo en la skill using-slate si lo necesitas.
 

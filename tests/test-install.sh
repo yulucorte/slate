@@ -13,16 +13,16 @@ CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" bash "$INSTALLER" "$TMPDIR_PROJECT" > /dev/nul
 expected_files=(
   "init.sh"
   "AGENTS.md"
-  "progress/current.md"
-  "progress/history.md"
-  "features/README.md"
-  "features/backlog.md"
-  "features/in-progress.md"
-  "features/done.md"
-  "bugs/open.md"
-  "bugs/fixed.md"
-  "ideas/inbox.md"
-  "ideas/triaged.md"
+  "docs/slate/progress/current.md"
+  "docs/slate/progress/history.md"
+  "docs/slate/features/README.md"
+  "docs/slate/features/backlog.md"
+  "docs/slate/features/in-progress.md"
+  "docs/slate/features/done.md"
+  "docs/slate/bugs/open.md"
+  "docs/slate/bugs/fixed.md"
+  "docs/slate/ideas/inbox.md"
+  "docs/slate/ideas/triaged.md"
 )
 
 for f in "${expected_files[@]}"; do
@@ -43,36 +43,36 @@ fi
 echo "PASS: init.sh is executable"
 
 # --- Test 3: idempotency — existing files are NOT overwritten ---
-echo "CUSTOM CONTENT" > "$TMPDIR_PROJECT/progress/current.md"
-original_content=$(cat "$TMPDIR_PROJECT/progress/current.md")
+echo "CUSTOM CONTENT" > "$TMPDIR_PROJECT/docs/slate/progress/current.md"
+original_content=$(cat "$TMPDIR_PROJECT/docs/slate/progress/current.md")
 
 CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" bash "$INSTALLER" "$TMPDIR_PROJECT" > /dev/null
 
-content_after=$(cat "$TMPDIR_PROJECT/progress/current.md")
+content_after=$(cat "$TMPDIR_PROJECT/docs/slate/progress/current.md")
 if [ "$original_content" != "$content_after" ]; then
-  echo "FAIL: install overwrote existing progress/current.md"
+  echo "FAIL: install overwrote existing docs/slate/progress/current.md"
   rm -rf "$TMPDIR_PROJECT"
   exit 1
 fi
 echo "PASS: idempotency — existing files not overwritten"
 
-# --- Test 4: progress/subagents dir exists ---
-if [ ! -d "$TMPDIR_PROJECT/progress/subagents" ]; then
-  echo "FAIL: progress/subagents/ not created"
+# --- Test 4: docs/slate/progress/subagents dir exists ---
+if [ ! -d "$TMPDIR_PROJECT/docs/slate/progress/subagents" ]; then
+  echo "FAIL: docs/slate/progress/subagents/ not created"
   rm -rf "$TMPDIR_PROJECT"
   exit 1
 fi
-echo "PASS: progress/subagents/ exists"
+echo "PASS: docs/slate/progress/subagents/ exists"
 
-# --- Test 5: bugs/ and ideas/ dirs exist ---
-for d in "bugs" "ideas"; do
+# --- Test 5: docs/slate/bugs/ and docs/slate/ideas/ dirs exist ---
+for d in "docs/slate/bugs" "docs/slate/ideas"; do
   if [ ! -d "$TMPDIR_PROJECT/$d" ]; then
     echo "FAIL: $d/ not created"
     rm -rf "$TMPDIR_PROJECT"
     exit 1
   fi
 done
-echo "PASS: bugs/ and ideas/ exist"
+echo "PASS: docs/slate/bugs/ and docs/slate/ideas/ exist"
 
 rm -rf "$TMPDIR_PROJECT"
 
