@@ -13,7 +13,9 @@ fi
 cd "$TARGET"
 
 # Required directories. Since slate 1.6.0 state lives under docs/slate/.
-mkdir -p docs/slate/progress/subagents docs/slate/features docs/slate/bugs docs/slate/ideas docs/superpowers/plans docs/superpowers/specs
+# docs/superpowers/{specs,plans} are NOT created here: Superpowers owns those
+# paths and creates them on demand when brainstorming/writing-plans run.
+mkdir -p docs/slate/progress/subagents docs/slate/features docs/slate/bugs docs/slate/ideas
 
 # Copy templates without overwriting existing user content
 _copy_if_missing() {

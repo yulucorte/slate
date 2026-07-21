@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.1 — 2026-07-21
+
+### Changed
+- `scripts/install-into-project.sh` no longer creates `docs/superpowers/specs/`
+  and `docs/superpowers/plans/`. Superpowers owns those paths and creates them
+  on demand (its `brainstorming` / `writing-plans` skills write there directly),
+  so pre-creating them left empty folders in projects that never use Superpowers.
+  slate now provisions only `docs/slate/`.
+
 ## 1.6.0 — 2026-07-21
 
 Moves all slate state out of the repo root and under a single `docs/slate/`
