@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.10.0 — 2026-10-18
+
+Hallazgos del uso real en phlou-app (slate 1.9.1, 2026-08-14 a 2026-10-18): varias
+piezas hacían lo contrario de lo que slate promete (orden y trazabilidad con
+pocos tokens y poco CI). **phlou-app necesita actualizar el plugin** para recibirlo.
+
+### Corregido
+
+- **BUG-004** — `session-end.sh` dejaba `main` sucio: en la carpeta principal
+  `current.md` trae contenido mergeado y el hook lo drenaba (medido: current −94 /
+  history +102). Ahora, en la rama por defecto, un `current.md` versionado y sin
+  cambios no se toca; el drenaje se hace en la rama de trabajo antes del PR.
+- **BUG-005** — el guardián juzgaba el `cwd` de la sesión y no la carpeta donde
+  corre git, bloqueando commits legítimos en worktrees (y empujando a los agentes a
+  saltárselo). Reglas 1/2 usan el directorio efectivo (`cd X &&`, `git -C X`) solo si
+  es un worktree del mismo repo; el seguimiento de `cd` se apaga ante subshells o
+  comillas partidas y la regla 0 evalúa cwd y destino (a prueba de fallos).
+- **BUG-006** — los subagentes (payload con `agent_id`) ya no recrean ni borran
+  candados ni drenan `current.md`; el latido solo refresca la hora de un candado existente.
+- **BUG-007** — el arranque inyecta los últimos bloques de `history.md`
+  (encabezado + primeras líneas), no líneas sueltas.
+
+### Nuevo
+
+- **FEAT-008** — `scripts/next-id.sh FEAT|BUG`: calcula, reserva e imprime el
+  siguiente ID libre (archivos, reservas y nombres de ramas).
+- **FEAT-010** — `scripts/move-card.sh <ID> <destino>`: mueve tarjetas validando
+  las reglas; nuevo marcador de subtarea `[-]` (`→ FEAT-YYY` / `(descartada: motivo)`).
+  El arranque inyecta las rutas absolutas de ambos scripts.
+
 ## 1.9.1 — 2026-08-14
 
 Un solo arreglo, de una línea, que decide si el resto del plugin existe o no
