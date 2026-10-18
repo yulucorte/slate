@@ -192,6 +192,9 @@ if [ -f "$STATE/progress/history.md" ]; then
     && HISTORY_COUNT_LINE="history.md: ${HIST_COUNT}/${HIST_LIMIT} bloques — rota con tracking-progress"
 fi
 
+# Rutas ABSOLUTAS: $CLAUDE_PLUGIN_ROOT no existe en el shell del agente.
+TOOLS_LINE="IDs/tarjetas: bash ${PLUGIN_ROOT}/scripts/next-id.sh FEAT|BUG · bash ${PLUGIN_ROOT}/scripts/move-card.sh <ID> <destino>"
+
 case "$SOURCE" in
   compact|resume)
     # The agent already has the protocol in context. Inject the bare minimum:
@@ -209,6 +212,8 @@ ${IDEAS_LINE}"
 ${HISTORY_COUNT_LINE}"
     [ -n "$VERSION_LINE" ] && CONTEXT="${CONTEXT}
 ${VERSION_LINE}"
+    CONTEXT="${CONTEXT}
+${TOOLS_LINE}"
     ;;
   *)  # startup | clear (and any unknown source, treated as a cold start)
     # current.md is injected in full unless it exceeds ~100 lines. Measured on
@@ -242,6 +247,8 @@ ${IDEAS_LINE}"
 ${HISTORY_COUNT_LINE}"
     [ -n "$VERSION_LINE" ] && CONTEXT="${CONTEXT}
 ${VERSION_LINE}"
+    CONTEXT="${CONTEXT}
+${TOOLS_LINE}"
     ;;
 esac
 

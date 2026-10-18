@@ -14,27 +14,16 @@ description: Use when a Superpowers plan has just been approved, when the user d
 ## Steps
 
 1. Determine target file (default: `docs/slate/features/backlog.md`; if work starts now: `docs/slate/features/in-progress.md`).
-2. Compute the next FEAT-XXX with a bounded search over the live files AND
-   pending reservations from other branches — do NOT read the files whole:
-
-       grep -hoE 'FEAT-[0-9]+' docs/slate/features/backlog.md docs/slate/features/in-progress.md docs/slate/features/done.md 2>/dev/null \
-         | grep -oE '[0-9]+' | sort -n | tail -1
-       ls "$(git rev-parse --git-common-dir)/slate-ids/FEAT" 2>/dev/null | sort -n | tail -1
-
-   Candidate ID = the HIGHER of those two numbers + 1, zero-padded to 3
-   digits. Empty output from both → `FEAT-001`. Only live files are scanned;
-   archives are never needed (see `docs/archiving.md`).
-
-   Reserve it: `$CLAUDE_PLUGIN_ROOT/scripts/reserve-id.sh FEAT-043`. Exit 0 →
-   use it. Non-zero exit → another branch/session reserved it first; retry
-   with the next candidate until a reservation succeeds.
+2. Get the next FEAT-XXX with `bash <abs-path>/scripts/next-id.sh FEAT` (absolute
+   path in the session-start context, line "IDs/tarjetas") and use the ID it
+   prints — do NOT read the files whole. It takes the max over live files,
+   `.git/slate-ids/` and branch names, and reserves it (shared by every
+   worktree of the repo; not across clones/machines). Without the script, fall
+   back to a bounded `grep` plus `scripts/reserve-id.sh FEAT-NNN`.
 
    **Creating more than one feature in the same batch (up to 3, see the
-   anti-pattern below): call `reserve-id.sh` once PER feature, in order, not
-   once for the whole batch.** Reserving `FEAT-043` for the first feature
-   does not reserve `FEAT-044` for the second — recompute the next candidate
-   and reserve it separately for every feature in the batch, or the rest go
-   out unreserved and can still collide with another branch.
+   anti-pattern below): call `next-id.sh` once PER feature**, so each gets its
+   own reservation; one call does not reserve the rest of the batch.
 3. For each new feature, write the entry following `docs/feature-format.md`.
 4. If deriving from a Superpowers plan, the plan's tasks (`### Task N`) become subtasks `FEAT-XXX.N`. Preserve task numbering.
 5. If the feature goes to `in-progress.md`, suggest a branch name with format `feat/feat-NNN-<slug>` (derive slug from title: lowercase, hyphens, strip accents and non-alphanumerics). Features in `backlog.md` get `Branch: none`.

@@ -38,14 +38,12 @@ The `Branch:` field declares the git branch that carries this feature's commits.
 - IDs are zero-padded to 3 digits: `FEAT-001`, `FEAT-042`, `FEAT-100`.
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Subtask IDs: `FEAT-XXX.N` where N starts at 1 within the feature.
-- To find the next available ID, use a bounded search — never read the files whole:
-
-      grep -hoE 'FEAT-[0-9]+' docs/slate/features/backlog.md docs/slate/features/in-progress.md docs/slate/features/done.md 2>/dev/null \
-        | grep -oE '[0-9]+' | sort -n | tail -1
-
-  Next ID = that number + 1 (empty output → `001`). Only the live files are
-  scanned; `done-archive-*.md` is never needed because archiving moves oldest
-  entries only, so the highest number always stays live (see `docs/archiving.md`).
+- To get the next available ID, run `scripts/next-id.sh FEAT` (or `BUG`): it takes
+  the max over the live files, the reservations in `.git/slate-ids/` and
+  local/remote branch names, reserves the next number and prints it. Never read
+  the files whole. `done-archive-*.md` is never needed because archiving moves
+  oldest entries only (see `docs/archiving.md`). Fallback without the script:
+  bounded `grep` over the live files + `scripts/reserve-id.sh FEAT-NNN`.
 - Branch slug rules and the "always `none` in backlog" lifecycle rule live in the [`## The Branch: field`](#the-branch-field) section above.
 
 ## Movement rules

@@ -36,25 +36,15 @@ Every feature MUST pass through `in-progress.md` so SessionStart can recover con
 
 ## ID assignment
 
-Do NOT read the files whole — that is the expensive mistake. Get the highest
-`FEAT-NNN` with a bounded search over the live files AND the pending
-reservations other branches may already hold (a session on an unmerged
-branch can have claimed a higher number that appears in no file yet):
-
-    grep -hoE 'FEAT-[0-9]+' docs/slate/features/backlog.md docs/slate/features/in-progress.md docs/slate/features/done.md 2>/dev/null \
-      | grep -oE '[0-9]+' | sort -n | tail -1
-    ls "$(git rev-parse --git-common-dir)/slate-ids/FEAT" 2>/dev/null | sort -n | tail -1
-
-Candidate ID = the HIGHER of those two numbers + 1, zero-padded to 3 digits
-(e.g. `FEAT-043`). Empty output from both → `FEAT-001`.
-
-**Reserve it before writing it anywhere**: `$CLAUDE_PLUGIN_ROOT/scripts/reserve-id.sh FEAT-043`.
-Exit 0 → the ID is yours, use it. Non-zero exit → another branch/session
-reserved it first; retry with the next candidate (`FEAT-044`, ...) and
-reserve THAT, until a reservation succeeds. This is what closes the race a
-plain `grep`+1 can't: two sessions on different unmerged branches computing
-the same "max + 1" and both picking it, invisibly to each other until they
-merge.
+Do NOT read the files whole. Run `bash <abs-path>/scripts/next-id.sh FEAT`
+(the absolute path is in the session-start context, line "IDs/tarjetas") and
+use the ID it prints: it already took the max over the live files, the
+reservations in `.git/slate-ids/` and local/remote branch names, and reserved
+the next number. Reservations are shared by every worktree of the same repo;
+they do NOT protect across separate clones or machines (no `fetch`). If the
+script is not available, fall back to a bounded `grep` over the live files plus
+`ls "$(git rev-parse --git-common-dir)/slate-ids/FEAT"`, then reserve by hand
+with `scripts/reserve-id.sh FEAT-NNN` (non-zero exit = taken, try the next).
 
 Subtasks: `FEAT-XXX.M` where `M` is the next integer within the feature.
 Subtasks are NOT reserved — they live inside an already-reserved feature, so
@@ -63,11 +53,6 @@ there's no cross-branch race to protect. IDs are immutable.
 The file search reads only the live files, never the `done-archive-*.md` files:
 archiving moves only the oldest (lowest-numbered) entries, so the highest number
 always stays live. See `docs/archiving.md`.
-
-The reservation directory (`scripts/reserve-id.sh`) is a per-repo, per-machine
-safety net: it's shared via `git rev-parse --git-common-dir`, so every branch
-and worktree of the SAME repo sees it, but it does NOT protect across
-separate clones or machines that never share a `.git`.
 
 ## Archiving done.md
 
