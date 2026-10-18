@@ -446,3 +446,4 @@ Se avisó a las dos sesiones hermanas activas en phlou-app (el origen del report
 - Revisión de seguridad endureció el seguimiento de `cd` del guardián (apagado ante subshells/comillas, regla 0 a prueba de fallos).
 - Versión 1.10.0 en `plugin.json` y CHANGELOG.
 
+- Ciclo: spec → builder check (opus) → plan → crítica (opus, 8 defectos corregidos) → implementación (sonnet) → revisión de seguridad automática → revisión final (opus): 2 bypasses ALTA del guardián (cd fallido, symlink + `..`), next-id leyendo fechas y move-card no atómico, corregidos en 873f5ab con tests. Informes en `docs/slate/progress/subagents/feat-008-010-*.md`.
