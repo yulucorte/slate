@@ -38,6 +38,8 @@ Append to `docs/slate/progress/current.md`:
 
 Move the entry block from `current.md` to `docs/slate/progress/history.md` under a heading `## YYYY-MM-DD — <session-summary>` (create the heading once per session, append entries to it).
 
+Do this drain **on the working branch, as part of the last commit before opening the PR**, so the close travels with the code PR (no docs-only PR, no extra CI) and `main` always receives an empty `current.md`. On the default branch the session-end hook does not drain a `current.md` that is already committed and unchanged.
+
 ## Archiving history.md
 
 `history.md` is append-only and grows without bound. When it exceeds **40

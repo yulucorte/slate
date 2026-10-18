@@ -59,6 +59,26 @@ if ! has_work "$CURRENT"; then
   exit 0
 fi
 
+# En la rama por defecto, un current.md versionado y SIN cambios respecto a HEAD
+# trae contenido de ramas ya mergeadas, no trabajo de esta sesion. Drenarlo
+# ensuciaba main (medido en phlou-app: current -94 / history +102). Con cambios
+# sin commitear o sin versionar (alguien trabajando directo en main) se drena.
+DEFAULT_BRANCH=$(git -C "$PROJECT_ROOT" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)
+DEFAULT_BRANCH="${DEFAULT_BRANCH#origin/}"
+CUR_BRANCH=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null)
+if [ -n "$CUR_BRANCH" ]; then
+  if [ -n "$DEFAULT_BRANCH" ]; then
+    IS_DEFAULT=0; [ "$CUR_BRANCH" = "$DEFAULT_BRANCH" ] && IS_DEFAULT=1
+  else
+    IS_DEFAULT=0; { [ "$CUR_BRANCH" = main ] || [ "$CUR_BRANCH" = master ]; } && IS_DEFAULT=1
+  fi
+  if [ "$IS_DEFAULT" = 1 ] \
+     && git -C "$PROJECT_ROOT" ls-files --error-unmatch docs/slate/progress/current.md >/dev/null 2>&1 \
+     && git -C "$PROJECT_ROOT" diff --quiet HEAD -- docs/slate/progress/current.md 2>/dev/null; then
+    exit 0
+  fi
+fi
+
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)
 
 {
