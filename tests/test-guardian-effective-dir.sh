@@ -68,6 +68,14 @@ expect deny  "cd | git: el cd no aplica" "cd $W | git checkout main"
 expect deny  "cd & git: el cd no aplica" "cd $W & git checkout main"
 expect deny  "cd a otro repo se juzga con el cwd" "cd $OTHER && git commit -m x"
 
+# Seguridad: el cd no se sigue si el comando no se parte limpio, y la regla 0
+# evalua tambien el cwd cuando hubo un cd (peer vivo en R, misma carpeta).
+expect deny  "(cd W); git checkout main: subshell, git corre en cwd" "(cd $W); git checkout main"
+expect deny  "echo con '; cd W' entre comillas, git corre en cwd" "echo \"a; cd $W\"; git checkout main"
+expect deny  "cd W && git checkout main: regla 0 evalua tambien el cwd" "cd $W && git checkout main"
+expect deny  "cd W && git reset --hard (peer en R)" "cd $W && git reset --hard"
+expect allow "cd W && git commit con mensaje entre comillas" "cd $W && git commit -m \"msg x\""
+
 # Peer vivo en el worktree: la regla 0 debe ver el cd previo.
 set_peer "$W" "feat/w"
 expect deny  "cd a worktree con peer dentro: checkout denegado (regla 0)" "cd $W && git checkout main"

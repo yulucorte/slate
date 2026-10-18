@@ -138,6 +138,17 @@ def main():
         cur_dir = None
         parts = re.split(r"(&&|\|\||[;&|\n])", command)
         segs, seps = parts[0::2], parts[1::2]
+        # El cd solo se sigue si el comando se parte limpio: sin subshells, grupos,
+        # sustitucion, backticks ni heredocs (el cd podria no aplicar a lo que
+        # sigue), y con cada segmento parseable por shlex (una comilla partida por
+        # el separador -- 'echo "a; cd W"' -- delata un ';' que no separa nada).
+        # Si no, cur_dir queda None y se juzga el cwd (comportamiento previo).
+        track_cd = not re.search(r"[(){}`]|<<", command)
+        for _s in segs:
+            try:
+                shlex.split(_s, comments=True)
+            except ValueError:
+                track_cd = False
         for si, seg in enumerate(segs):
             sep_before = seps[si - 1] if si > 0 else ";"
             sep_after = seps[si] if si < len(seps) else ""
@@ -171,7 +182,9 @@ def main():
                 # esta shell o corre a veces) ni seguido de ellos. Una variable,
                 # '~' o '-' no se resuelve: se cae al cwd (comportamiento previo).
                 arg = toks[k + 1] if len(toks) == k + 2 else ""
-                if not arg or "$" in arg or "`" in arg or arg[0] in "-~":
+                if not track_cd:
+                    pass
+                elif not arg or "$" in arg or "`" in arg or arg[0] in "-~":
                     cur_dir = None
                 elif (sep_before in (";", "\n", "&&")
                       and sep_after in (";", "\n", "&&")):
@@ -197,10 +210,18 @@ def main():
             verb = toks[j]
             # Directorio efectivo crudo de ESTE git: -C/--work-tree resuelto contra
             # el cd previo, o el cd previo, o None (cwd).
+            # Regla 0 es a prueba de fallos: si un cd cambio el directorio (sin -C
+            # explicito) se evaluan AMBOS, el del cd y el cwd. Con -C explicito,
+            # un solo objetivo como siempre.
+            hit_dirs = [None]
             if seg_dir is None:
+                hit_dirs = [cur_dir] + ([None] if cur_dir is not None else [])
                 seg_dir = cur_dir
             elif cur_dir is not None and not seg_dir.startswith("/"):
                 seg_dir = os.path.join(cur_dir, seg_dir)
+                hit_dirs = [seg_dir]
+            else:
+                hit_dirs = [seg_dir]
             if verb in ("commit", "push", "merge", "rebase", "cherry-pick"):
                 verbs.add(verb)
                 integ_dirs.add(seg_dir)
@@ -211,20 +232,20 @@ def main():
                 # quedan fuera: ver touches_worktree().
                 if touches_worktree(verb, toks[j + 1:]):
                     verbs.add("tree:" + verb)
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
             elif verb == "reset":
                 # --hard, --merge y --keep reescriben archivos del arbol de trabajo;
                 # --soft y --mixed solo tocan HEAD/indice, nunca los archivos.
                 if any(f in toks[j + 1:] for f in ("--hard", "--merge", "--keep")):
                     verbs.add("tree:reset")
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
             elif verb == "pull":
                 # 'git pull' = fetch + merge/rebase EN el arbol de trabajo: reescribe
                 # en disco todo archivo que haya cambiado upstream, y con --rebase
                 # reconstruye el arbol commit a commit. Mismo dano que un checkout
                 # para el agente que esta editando esos archivos ahora mismo.
                 verbs.add("tree:pull")
-                tree_hits.append(seg_dir)
+                tree_hits.extend(hit_dirs)
             elif verb == "clean":
                 # 'git clean' BORRA archivos sin seguimiento -- incluidos los que la
                 # otra sesion acaba de crear y aun no ha commiteado. Sin -f/--force
@@ -243,7 +264,7 @@ def main():
                 )
                 if forced:
                     verbs.add("tree:clean")
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
             elif verb == "stash":
                 verbs.add("stash")
                 sub = toks[j + 1] if j + 1 < len(toks) else ""
@@ -266,7 +287,7 @@ def main():
                 stash = {"sub": sub, "explicit": explicit, "tree": destructive}
                 if destructive:
                     verbs.add("tree:stash")
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
         return verbs, stash, tree_hits, integ_dirs
 
 
