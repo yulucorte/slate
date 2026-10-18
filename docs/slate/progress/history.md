@@ -447,3 +447,4 @@ Se avisó a las dos sesiones hermanas activas en phlou-app (el origen del report
 - Versión 1.10.0 en `plugin.json` y CHANGELOG.
 
 - Ciclo: spec → builder check (opus) → plan → crítica (opus, 8 defectos corregidos) → implementación (sonnet) → revisión de seguridad automática → revisión final (opus): 2 bypasses ALTA del guardián (cd fallido, symlink + `..`), next-id leyendo fechas y move-card no atómico, corregidos en 873f5ab con tests. Informes en `docs/slate/progress/subagents/feat-008-010-*.md`.
+- 1.10.1 (BUG-008): la revisión de seguridad automática post-merge encontró que el `cd` del guardián solo evaluaba el destino lógico; ahora lógico y físico.

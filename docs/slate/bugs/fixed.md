@@ -107,3 +107,18 @@ Reportado por la sesión phlou (phlou-app) el 2026-10-18.
 
 ### Notes
 Reportado por la sesión phlou (phlou-app) el 2026-10-18.
+
+## BUG-008: El seguimiento de `cd` del guardián (1.10.0) solo evaluaba el destino lógico
+- **Status**: fixed
+- **Severity**: high
+- **Reported-by**: @felipevillacorte
+- **Detected**: 2026-10-18
+- **Fixed**: 2026-10-18
+- **Where**: `hooks/session-guardian.sh` (`classify()`, seguimiento de `cd`)
+- **Root cause**: El arreglo de BUG-005 resolvía cada `cd` solo de forma lógica (`normpath`). La shell usa el destino lógico y, si no existe, cae al físico. Con `R/lnk -> W/d`, `cd lnk/../x; git checkout main` corre en `W/x` (logico `R/x` no existe) y el guardián juzgaba `R/x`: un peer vivo en W no se veía → ALLOW de una operación destructiva.
+- **Fix**: Cada `cd` produce sus destinos posibles (lógico y físico) y se evalúan todos, en la regla 0 y en las reglas 1/2 (deniega si cualquiera choca). Test de regresión en `tests/test-guardian-effective-dir.sh` que falla con 1.10.0.
+- **Commit**: d206659
+- **Related feature**: none
+
+### Notes
+Hallado por la revisión de seguridad automática tras el merge de 1.10.0 (PR #9). Relacionado con [[BUG-005]].

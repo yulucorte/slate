@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.10.1 — 2026-10-18
+
+### Corregido
+
+- **BUG-008** — el seguimiento de `cd` de 1.10.0 solo evaluaba el destino
+  lógico. La shell cae al físico si el lógico no existe, así que
+  `cd lnk/../x; git checkout main` podía correr sobre un peer vivo sin ser
+  bloqueado. Ahora se evalúan ambos destinos (a prueba de fallos).
+
 ## 1.10.0 — 2026-10-18
 
 Hallazgos del uso real en phlou-app (slate 1.9.1, 2026-08-14 a 2026-10-18): varias
