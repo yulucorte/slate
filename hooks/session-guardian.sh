@@ -135,14 +135,14 @@ def main():
         # BUG-005: directorio donde correria el siguiente git por un 'cd X &&'
         # previo en el mismo comando (None = cwd). Se parte CONSERVANDO los
         # separadores para saber si el cd realmente aplica a lo que le sigue.
-        cur_dir = None
+        cur_dirs = []
         parts = re.split(r"(&&|\|\||[;&|\n])", command)
         segs, seps = parts[0::2], parts[1::2]
         # El cd solo se sigue si el comando se parte limpio: sin subshells, grupos,
         # sustitucion, backticks ni heredocs (el cd podria no aplicar a lo que
         # sigue), y con cada segmento parseable por shlex (una comilla partida por
         # el separador -- 'echo "a; cd W"' -- delata un ';' que no separa nada).
-        # Si no, cur_dir queda None y se juzga el cwd (comportamiento previo).
+        # Si no, cur_dirs queda vacio y se juzga el cwd (comportamiento previo).
         track_cd = not re.search(r"[(){}`]|<<", command)
         for _s in segs:
             try:
@@ -185,14 +185,21 @@ def main():
                 if not track_cd:
                     pass
                 elif not arg or "$" in arg or "`" in arg or arg[0] in "-~":
-                    cur_dir = None
+                    cur_dirs = []
                 elif (sep_before in (";", "\n", "&&")
                       and sep_after in (";", "\n", "&&")):
-                    # Absoluta y normalizada como la shell (cd logico): 'lnk/..'
-                    # vuelve a la carpeta de partida aunque lnk sea un symlink.
-                    # Con realpath primero se seguia el enlace y '..' caia en
-                    # otro worktree (bypass hallado en revision).
-                    cur_dir = os.path.normpath(os.path.join(cur_dir or cwd, arg))
+                    # Destinos POSIBLES del cd, sin adivinar cual elige la shell:
+                    # el logico ('cd -L', normpath: 'lnk/..' vuelve a la carpeta
+                    # de partida aunque lnk sea un symlink) y el fisico (realpath,
+                    # al que la shell cae si el logico no existe). Se evaluan
+                    # TODOS: elegir uno solo abria un bypass por symlink.
+                    nxt = []
+                    for base in (cur_dirs or [cwd]):
+                        raw = os.path.join(base, arg)
+                        for c in (os.path.normpath(raw), os.path.realpath(raw)):
+                            if c not in nxt:
+                                nxt.append(c)
+                    cur_dirs = nxt
                 continue
             if k >= len(toks) or toks[k] != "git":
                 continue
@@ -221,17 +228,24 @@ def main():
             # AÑADIR un objetivo, nunca quitar uno. Un 'cd nope; git -C . reset
             # --hard' cuyo cd falla corre en el cwd y debe seguir denegandose.
             hit_dirs = [seg_dir]
-            if cur_dir is not None:
+            cd_dirs = []
+            for c in cur_dirs:
                 if seg_dir is None:
-                    seg_dir = cur_dir
+                    d = c
                 elif not seg_dir.startswith("/"):
                     # git -C resuelve contra la carpeta FISICA donde dejo el cd.
-                    seg_dir = os.path.join(os.path.realpath(cur_dir), seg_dir)
-                if seg_dir not in hit_dirs:
-                    hit_dirs.append(seg_dir)
+                    d = os.path.join(os.path.realpath(c), seg_dir)
+                else:
+                    d = seg_dir
+                cd_dirs.append(d)
+                if d not in hit_dirs:
+                    hit_dirs.append(d)
+            # Reglas 1/2: con cd, cada destino posible se evalua (deniega si
+            # cualquiera choca); sin cd, el -C crudo o el cwd, como siempre.
+            int_dirs = cd_dirs or [seg_dir]
             if verb in ("commit", "push", "merge", "rebase", "cherry-pick"):
                 verbs.add(verb)
-                integ_dirs.add(seg_dir)
+                integ_dirs.update(int_dirs)
             elif verb in ("checkout", "switch", "restore"):
                 # Reescriben el arbol de trabajo en disco. Prefijo "tree:" para no
                 # mezclarlos con los verbos de integracion de las reglas 1-3.

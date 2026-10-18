@@ -91,6 +91,10 @@ expect deny  "cd lnk/.. (symlink) + git -C . checkout" "cd lnk/..; git -C . chec
 set_peer "$W" "feat/w"
 expect deny  "cd a worktree con peer dentro: checkout denegado (regla 0)" "cd $W && git checkout main"
 expect allow "checkout sin cd: el peer esta en otra carpeta" "git checkout main"
+# cd con symlink cuyo destino LOGICO no existe: la shell cae al FISICO (W/x).
+# Se evaluan ambos destinos, asi que el peer en W se ve.
+mkdir -p "$W/x"
+expect deny  "cd lnk/../x (logico inexistente -> fisico en W): checkout denegado" "cd lnk/../x; git checkout main"
 
 echo
 if [ "$FAILED" -eq 0 ]; then echo "All guardian effective-dir tests passed."; exit 0; fi
