@@ -16,7 +16,9 @@ pocos tokens y poco CI). **phlou-app necesita actualizar el plugin** para recibi
   corre git, bloqueando commits legítimos en worktrees (y empujando a los agentes a
   saltárselo). Reglas 1/2 usan el directorio efectivo (`cd X &&`, `git -C X`) solo si
   es un worktree del mismo repo; el seguimiento de `cd` se apaga ante subshells o
-  comillas partidas y la regla 0 evalúa cwd y destino (a prueba de fallos).
+  comillas partidas y la regla 0 evalúa cwd y destino (a prueba de fallos): un
+  `cd` solo puede AÑADIR objetivos, nunca quitar el que juzgaba 1.9.1 (un `cd` que
+  falla deja git en el cwd), y se resuelve como la shell (`lnk/..` no sigue el symlink).
 - **BUG-006** — los subagentes (payload con `agent_id`) ya no recrean ni borran
   candados ni drenan `current.md`; el latido solo refresca la hora de un candado existente.
 - **BUG-007** — el arranque inyecta los últimos bloques de `history.md`
@@ -25,7 +27,8 @@ pocos tokens y poco CI). **phlou-app necesita actualizar el plugin** para recibi
 ### Nuevo
 
 - **FEAT-008** — `scripts/next-id.sh FEAT|BUG`: calcula, reserva e imprime el
-  siguiente ID libre (archivos, reservas y nombres de ramas).
+  siguiente ID libre (archivos, reservas y nombres de ramas; en ramas solo
+  `feat-NNN` de 1-3 dígitos tras un no-alfanumérico, para no leer fechas).
 - **FEAT-010** — `scripts/move-card.sh <ID> <destino>`: mueve tarjetas validando
   las reglas; nuevo marcador de subtarea `[-]` (`→ FEAT-YYY` / `(descartada: motivo)`).
   El arranque inyecta las rutas absolutas de ambos scripts.

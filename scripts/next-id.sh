@@ -31,13 +31,14 @@ LOWER="$(printf '%s' "$PREFIX" | tr 'A-Z' 'a-z')"
 
 # Todos los numeros candidatos, uno por linea (en una sola tuberia, para que el
 # maximo se calcule en esta shell y no en una subshell).
+# ponytail: ramas solo cuentan con 1-3 digitos tras feat-/bug- al inicio o tras un no-alfanumerico (evita fechas tipo feat-2026-...); subir a {1,4} al pasar de FEAT-999.
 nums() {
   for f in $FILES; do
     [ -f "$TOP/docs/slate/$DIR/$f" ] && grep -oE "$PREFIX-[0-9]+" "$TOP/docs/slate/$DIR/$f"
   done
   ls "$GCD/slate-ids/$PREFIX" 2>/dev/null | grep -E '^[0-9]+$'
   git for-each-ref --format='%(refname:short)' refs/heads refs/remotes 2>/dev/null \
-    | grep -ioE "$LOWER-[0-9]+"
+    | grep -ioE "(^|[^a-z0-9])$LOWER-[0-9]{1,3}([^0-9]|$)" | grep -oE "[0-9]+"
 }
 
 max=0

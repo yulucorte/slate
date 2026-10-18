@@ -41,6 +41,12 @@ git -C "$R3" branch fix/FEAT-052-upper
 git -C "$R3" update-ref refs/remotes/origin/bug/bug-020-y HEAD
 check "rama local feat-050/FEAT-052 -> FEAT-053" "$(nid "$R3" FEAT)" "FEAT-053"
 check "rama remota bug-020 -> BUG-021" "$(nid "$R3" BUG)" "BUG-021"
+# Fechas y palabras que contienen el prefijo no cuentan; un prefijo tras '-' si.
+R3B="$TMP/r3b"; mkrepo "$R3B"
+git -C "$R3B" branch feat-2026-10-18-x
+git -C "$R3B" branch defeat-99
+git -C "$R3B" branch backup/pre-merge-FEAT-009
+check "feat-2026-... y defeat-99 ignorados; pre-merge-FEAT-009 cuenta" "$(nid "$R3B" FEAT)" "FEAT-010"
 
 # 4. archivos de archivo se ignoran
 R4="$TMP/r4"; mkrepo "$R4"

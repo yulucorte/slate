@@ -75,6 +75,17 @@ expect deny  "echo con '; cd W' entre comillas, git corre en cwd" "echo \"a; cd 
 expect deny  "cd W && git checkout main: regla 0 evalua tambien el cwd" "cd $W && git checkout main"
 expect deny  "cd W && git reset --hard (peer en R)" "cd $W && git reset --hard"
 expect allow "cd W && git commit con mensaje entre comillas" "cd $W && git commit -m \"msg x\""
+# Revision final: el cd solo puede AÑADIR objetivos a la regla 0, nunca quitar
+# el del cwd. Un cd que falla deja git corriendo en el cwd.
+expect deny  "cd que falla + git -C . checkout (corre en cwd)" "cd nope; git -C . checkout main"
+expect deny  "cd que falla && true; git -C . reset --hard" "cd nope && true; git -C . reset --hard"
+expect deny  "cd que falla + salto de linea + git -C . clean -fd" "cd nope
+git -C . clean -fd"
+# cd logico como la shell: lnk/.. vuelve a R aunque lnk apunte dentro de W.
+mkdir -p "$W/d"; ln -s "$W/d" "$R/lnk"
+expect deny  "cd lnk/.. (symlink) + git commit: corre en R" "cd lnk/..; git commit -m x"
+expect deny  "cd lnk/.. (symlink) && git push" "cd lnk/.. && git push"
+expect deny  "cd lnk/.. (symlink) + git -C . checkout" "cd lnk/..; git -C . checkout main"
 
 # Peer vivo en el worktree: la regla 0 debe ver el cd previo.
 set_peer "$W" "feat/w"

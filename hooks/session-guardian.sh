@@ -188,8 +188,11 @@ def main():
                     cur_dir = None
                 elif (sep_before in (";", "\n", "&&")
                       and sep_after in (";", "\n", "&&")):
-                    cur_dir = arg if (cur_dir is None and not arg.startswith("/")) \
-                        else os.path.join(cur_dir or "", arg)
+                    # Absoluta y normalizada como la shell (cd logico): 'lnk/..'
+                    # vuelve a la carpeta de partida aunque lnk sea un symlink.
+                    # Con realpath primero se seguia el enlace y '..' caia en
+                    # otro worktree (bypass hallado en revision).
+                    cur_dir = os.path.normpath(os.path.join(cur_dir or cwd, arg))
                 continue
             if k >= len(toks) or toks[k] != "git":
                 continue
@@ -213,15 +216,19 @@ def main():
             # Regla 0 es a prueba de fallos: si un cd cambio el directorio (sin -C
             # explicito) se evaluan AMBOS, el del cd y el cwd. Con -C explicito,
             # un solo objetivo como siempre.
-            hit_dirs = [None]
-            if seg_dir is None:
-                hit_dirs = [cur_dir] + ([None] if cur_dir is not None else [])
-                seg_dir = cur_dir
-            elif cur_dir is not None and not seg_dir.startswith("/"):
-                seg_dir = os.path.join(cur_dir, seg_dir)
-                hit_dirs = [seg_dir]
-            else:
-                hit_dirs = [seg_dir]
+            # Los objetivos de la regla 0 son SIEMPRE un superconjunto de los de
+            # 1.9.1 (el -C crudo contra el cwd, o el cwd): el cd solo puede
+            # AÑADIR un objetivo, nunca quitar uno. Un 'cd nope; git -C . reset
+            # --hard' cuyo cd falla corre en el cwd y debe seguir denegandose.
+            hit_dirs = [seg_dir]
+            if cur_dir is not None:
+                if seg_dir is None:
+                    seg_dir = cur_dir
+                elif not seg_dir.startswith("/"):
+                    # git -C resuelve contra la carpeta FISICA donde dejo el cd.
+                    seg_dir = os.path.join(os.path.realpath(cur_dir), seg_dir)
+                if seg_dir not in hit_dirs:
+                    hit_dirs.append(seg_dir)
             if verb in ("commit", "push", "merge", "rebase", "cherry-pick"):
                 verbs.add(verb)
                 integ_dirs.add(seg_dir)

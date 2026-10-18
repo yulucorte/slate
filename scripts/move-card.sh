@@ -156,14 +156,19 @@ for b in sblocks:
 stext = "\n".join(parts).rstrip("\n") + "\n"
 
 
-def write(p, text):
+def stage(p, text):
     tmp = p + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(text)
-    os.replace(tmp, p)
+    return tmp
 
 
-write(path(dest), dtext)
-write(path(sname), stext)
+# Los dos .tmp se escriben ANTES de reemplazar nada: si falla una escritura
+# (disco lleno, permisos) no se toca ningun archivo y la tarjeta no queda
+# duplicada en origen y destino.
+dtmp = stage(path(dest), dtext)
+stmp = stage(path(sname), stext)
+os.replace(dtmp, path(dest))
+os.replace(stmp, path(sname))
 print("%s: %s.md -> %s.md" % (card_id, sname, dest))
 PY
