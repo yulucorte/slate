@@ -439,3 +439,11 @@ Corregidas las 5 vía `SendMessage` al agente de ejecución, que seguía corrien
 Verificación independiente por la sesión principal: `for f in tests/*.sh; do bash "$f"; done` → 29/29 en verde. Lectura manual de los diffs de `session-heartbeat.sh`, `session-guardian.sh` y `CHANGELOG.md` para confirmar que el código y el changelog no sobre-prometen. FEAT-007 movida a `done.md` con `Verified: 2026-08-13`.
 
 Se avisó a las dos sesiones hermanas activas en phlou-app (el origen del reporte y otra que confirmó en vivo el mismo patrón de incidente) sobre el arreglo y sus límites conocidos (protección por-repo/por-máquina, no entre clones ni CI; necesitan reinstalar/actualizar Slate para recibir 1.9.0).
+
+## 2026-10-18 — slate 1.10.0: hallazgos de phlou
+- BUG-004..007 corregidos (session-end en rama por defecto, guardián por directorio efectivo, hooks ignoran subagentes, historial por bloques) y BUG-003 pasado a fixed.
+- FEAT-008 (`next-id.sh`) y FEAT-010 (`move-card.sh`, subtareas `[-]`) entregadas; las tarjetas se movieron con el propio `move-card.sh`.
+- Revisión de seguridad endureció el seguimiento de `cd` del guardián (apagado ante subshells/comillas, regla 0 a prueba de fallos).
+- Versión 1.10.0 en `plugin.json` y CHANGELOG.
+
+- Ciclo: spec → builder check (opus) → plan → crítica (opus, 8 defectos corregidos) → implementación (sonnet) → revisión de seguridad automática → revisión final (opus): 2 bypasses ALTA del guardián (cd fallido, symlink + `..`), next-id leyendo fechas y move-card no atómico, corregidos en 873f5ab con tests. Informes en `docs/slate/progress/subagents/feat-008-010-*.md`.

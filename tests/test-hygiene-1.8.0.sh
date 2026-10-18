@@ -139,7 +139,7 @@ _(none in flight)_
 EOF
 printf '# Session history\n' > "$P4/docs/slate/progress/history.md"
 BEFORE=$(wc -l < "$P4/docs/slate/progress/history.md")
-CLAUDE_PROJECT_ROOT="$P4" bash "$PLUGIN_ROOT/hooks/session-end.sh" >/dev/null 2>&1
+CLAUDE_PROJECT_ROOT="$P4" bash "$PLUGIN_ROOT/hooks/session-end.sh" </dev/null >/dev/null 2>&1
 AFTER=$(wc -l < "$P4/docs/slate/progress/history.md")
 if [ "$BEFORE" -eq "$AFTER" ]; then
   pass "current.md con solo la plantilla no genera bloque en history.md"
@@ -162,7 +162,7 @@ cat > "$P4/docs/slate/progress/current.md" <<'EOF'
 
 <!-- This file is auto-managed by slate:tracking-progress. -->
 EOF
-CLAUDE_PROJECT_ROOT="$P4" bash "$PLUGIN_ROOT/hooks/session-end.sh" >/dev/null 2>&1
+CLAUDE_PROJECT_ROOT="$P4" bash "$PLUGIN_ROOT/hooks/session-end.sh" </dev/null >/dev/null 2>&1
 if grep -q 'FEAT-006 en vuelo' "$P4/docs/slate/progress/history.md"; then
   pass "current.md con trabajo real si se drena a history.md"
 else
@@ -180,7 +180,7 @@ drain_check() {
   printf '# Session history\n' > "$d/docs/slate/progress/history.md"
   local before after
   before=$(wc -l < "$d/docs/slate/progress/history.md")
-  CLAUDE_PROJECT_ROOT="$d" bash "$PLUGIN_ROOT/hooks/session-end.sh" >/dev/null 2>&1
+  CLAUDE_PROJECT_ROOT="$d" bash "$PLUGIN_ROOT/hooks/session-end.sh" </dev/null >/dev/null 2>&1
   after=$(wc -l < "$d/docs/slate/progress/history.md")
   if [ "$want" = "drain" ]; then
     [ "$after" -gt "$before" ] && pass "$desc" || fail "$desc (no se drenó)"

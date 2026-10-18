@@ -129,7 +129,29 @@ def main():
         # uno se evalua por separado mas adelante (round 2, item 2) en vez de
         # dejar que el primero decida por todos.
         tree_hits = []
-        for seg in re.split(r"[;&|\n]+", command):
+        # Directorios efectivos (crudos) de las invocaciones de integracion
+        # (commit/push/merge/rebase/cherry-pick): None = el cwd de la sesion.
+        integ_dirs = set()
+        # BUG-005: directorio donde correria el siguiente git por un 'cd X &&'
+        # previo en el mismo comando (None = cwd). Se parte CONSERVANDO los
+        # separadores para saber si el cd realmente aplica a lo que le sigue.
+        cur_dir = None
+        parts = re.split(r"(&&|\|\||[;&|\n])", command)
+        segs, seps = parts[0::2], parts[1::2]
+        # El cd solo se sigue si el comando se parte limpio: sin subshells, grupos,
+        # sustitucion, backticks ni heredocs (el cd podria no aplicar a lo que
+        # sigue), y con cada segmento parseable por shlex (una comilla partida por
+        # el separador -- 'echo "a; cd W"' -- delata un ';' que no separa nada).
+        # Si no, cur_dir queda None y se juzga el cwd (comportamiento previo).
+        track_cd = not re.search(r"[(){}`]|<<", command)
+        for _s in segs:
+            try:
+                shlex.split(_s, comments=True)
+            except ValueError:
+                track_cd = False
+        for si, seg in enumerate(segs):
+            sep_before = seps[si - 1] if si > 0 else ";"
+            sep_after = seps[si] if si < len(seps) else ""
             try:
                 # comments=True corta todo lo que sigue a '#': sin esto,
                 # 'ls  # git checkout main' se denegaba por el comentario.
@@ -154,6 +176,24 @@ def main():
                     continue                #   siguen asignaciones, ya cubiertas
                 else:
                     break
+            if k < len(toks) and toks[k] == "cd":
+                # Solo cuenta un cd LITERAL y sencillo, que de verdad cambie el
+                # directorio de lo que sigue: ni tras '||', '|' o '&' (no corre en
+                # esta shell o corre a veces) ni seguido de ellos. Una variable,
+                # '~' o '-' no se resuelve: se cae al cwd (comportamiento previo).
+                arg = toks[k + 1] if len(toks) == k + 2 else ""
+                if not track_cd:
+                    pass
+                elif not arg or "$" in arg or "`" in arg or arg[0] in "-~":
+                    cur_dir = None
+                elif (sep_before in (";", "\n", "&&")
+                      and sep_after in (";", "\n", "&&")):
+                    # Absoluta y normalizada como la shell (cd logico): 'lnk/..'
+                    # vuelve a la carpeta de partida aunque lnk sea un symlink.
+                    # Con realpath primero se seguia el enlace y '..' caia en
+                    # otro worktree (bypass hallado en revision).
+                    cur_dir = os.path.normpath(os.path.join(cur_dir or cwd, arg))
+                continue
             if k >= len(toks) or toks[k] != "git":
                 continue
             gi = k
@@ -171,8 +211,27 @@ def main():
             if j >= len(toks):
                 continue
             verb = toks[j]
+            # Directorio efectivo crudo de ESTE git: -C/--work-tree resuelto contra
+            # el cd previo, o el cd previo, o None (cwd).
+            # Regla 0 es a prueba de fallos: si un cd cambio el directorio (sin -C
+            # explicito) se evaluan AMBOS, el del cd y el cwd. Con -C explicito,
+            # un solo objetivo como siempre.
+            # Los objetivos de la regla 0 son SIEMPRE un superconjunto de los de
+            # 1.9.1 (el -C crudo contra el cwd, o el cwd): el cd solo puede
+            # AÑADIR un objetivo, nunca quitar uno. Un 'cd nope; git -C . reset
+            # --hard' cuyo cd falla corre en el cwd y debe seguir denegandose.
+            hit_dirs = [seg_dir]
+            if cur_dir is not None:
+                if seg_dir is None:
+                    seg_dir = cur_dir
+                elif not seg_dir.startswith("/"):
+                    # git -C resuelve contra la carpeta FISICA donde dejo el cd.
+                    seg_dir = os.path.join(os.path.realpath(cur_dir), seg_dir)
+                if seg_dir not in hit_dirs:
+                    hit_dirs.append(seg_dir)
             if verb in ("commit", "push", "merge", "rebase", "cherry-pick"):
                 verbs.add(verb)
+                integ_dirs.add(seg_dir)
             elif verb in ("checkout", "switch", "restore"):
                 # Reescriben el arbol de trabajo en disco. Prefijo "tree:" para no
                 # mezclarlos con los verbos de integracion de las reglas 1-3.
@@ -180,20 +239,20 @@ def main():
                 # quedan fuera: ver touches_worktree().
                 if touches_worktree(verb, toks[j + 1:]):
                     verbs.add("tree:" + verb)
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
             elif verb == "reset":
                 # --hard, --merge y --keep reescriben archivos del arbol de trabajo;
                 # --soft y --mixed solo tocan HEAD/indice, nunca los archivos.
                 if any(f in toks[j + 1:] for f in ("--hard", "--merge", "--keep")):
                     verbs.add("tree:reset")
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
             elif verb == "pull":
                 # 'git pull' = fetch + merge/rebase EN el arbol de trabajo: reescribe
                 # en disco todo archivo que haya cambiado upstream, y con --rebase
                 # reconstruye el arbol commit a commit. Mismo dano que un checkout
                 # para el agente que esta editando esos archivos ahora mismo.
                 verbs.add("tree:pull")
-                tree_hits.append(seg_dir)
+                tree_hits.extend(hit_dirs)
             elif verb == "clean":
                 # 'git clean' BORRA archivos sin seguimiento -- incluidos los que la
                 # otra sesion acaba de crear y aun no ha commiteado. Sin -f/--force
@@ -212,7 +271,7 @@ def main():
                 )
                 if forced:
                     verbs.add("tree:clean")
-                    tree_hits.append(seg_dir)
+                    tree_hits.extend(hit_dirs)
             elif verb == "stash":
                 verbs.add("stash")
                 sub = toks[j + 1] if j + 1 < len(toks) else ""
@@ -235,16 +294,16 @@ def main():
                 stash = {"sub": sub, "explicit": explicit, "tree": destructive}
                 if destructive:
                     verbs.add("tree:stash")
-                    tree_hits.append(seg_dir)
-        return verbs, stash, tree_hits
+                    tree_hits.extend(hit_dirs)
+        return verbs, stash, tree_hits, integ_dirs
 
 
     if mode == "bash":
-        verbs, stash, tree_hits = classify(cmd)
+        verbs, stash, tree_hits, integ_dirs = classify(cmd)
         if not verbs:
             sys.exit(0)
     else:
-        verbs, stash, tree_hits = set(), {"sub": None, "explicit": False, "tree": False}, []
+        verbs, stash, tree_hits, integ_dirs = set(), {"sub": None, "explicit": False, "tree": False}, [], set()
 
     # --- must be a real git repo -------------------------------------------------
     if git("rev-parse", "--git-dir").returncode != 0:
@@ -372,8 +431,30 @@ def main():
             }))
         sys.exit(0)
 
-    actual_branch = git("branch", "--show-current").stdout.strip()
-    actual_head = git("rev-parse", "HEAD").stdout.strip()
+    def effective_dir(raw):
+        # Reglas 1 y 2: la carpeta donde correra el git (cd previo / -C). Solo se
+        # usa si es un repo git con el MISMO git-common-dir que el cwd (un
+        # worktree del mismo repo, demostrable); si no, se cae al cwd: se juzga
+        # como hasta ahora. Ante cualquier duda, cwd.
+        if not raw:
+            return cwd
+        try:
+            d = raw if os.path.isabs(raw) else os.path.join(cwd, raw)
+            d = os.path.realpath(d)
+            if not os.path.isdir(d):
+                return cwd
+            r = git("rev-parse", "--git-common-dir", in_dir=d)
+            g = r.stdout.strip()
+            if r.returncode != 0 or not g:
+                return cwd
+            if not os.path.isabs(g):
+                g = os.path.join(d, g)
+            return d if os.path.realpath(g) == gcd else cwd
+        except Exception:
+            return cwd
+
+    # Directorios donde corre algun verbo de integracion (sin duplicados).
+    eff_dirs = sorted({effective_dir(d) for d in integ_dirs} or {cwd})
 
 
     def main_ref():
@@ -499,9 +580,14 @@ def main():
                 )
 
     # Rule 1 — same-branch collision (confirmed): another live session is on my branch
-    if actual_branch and (verbs & {"commit", "push", "merge", "rebase", "cherry-pick"}):
+    rule1_hit = False
+    for ed in (eff_dirs if verbs & {"commit", "push", "merge", "rebase", "cherry-pick"} else []):
+        actual_branch = git("branch", "--show-current", in_dir=ed).stdout.strip()
+        if not actual_branch or rule1_hit:
+            continue
         for d in foreign:
             if d.get("branch") and d["branch"] == actual_branch:
+                rule1_hit = True
                 denies.append(
                     "Otra sesion de Claude Code sigue viva en la rama '%s' (candado %s). "
                     "Dos sesiones en la misma rama se pisan el indice y la rama. "
@@ -514,17 +600,24 @@ def main():
                 break
 
     # Rule 2 — branch-on-top (integration ops): my HEAD is built on a peer's live tip
-    if actual_head and integ:
+    rule2_done = False
+    for ed in (eff_dirs if integ else []):
+        if rule2_done:
+            break
+        actual_head = git("rev-parse", "HEAD", in_dir=ed).stdout.strip()
+        if not actual_head:
+            continue
         mref = main_ref()
         for d in foreign:
             H = (d.get("head") or "").strip()
             if not H:
                 continue
-            if git("merge-base", "--is-ancestor", H, actual_head).returncode != 0:
+            if git("merge-base", "--is-ancestor", H, actual_head, in_dir=ed).returncode != 0:
                 continue  # my HEAD does not descend from their tip -> independent, fine
             if mref:
-                if git("merge-base", "--is-ancestor", H, mref).returncode == 0:
+                if git("merge-base", "--is-ancestor", H, mref, in_dir=ed).returncode == 0:
                     continue  # their tip is already in mainline -> shared history, fine
+                rule2_done = True
                 denies.append(
                     "Tu rama esta construida ENCIMA de commits vivos de otra sesion "
                     "(candado %s, rama '%s', tip %s) que aun no estan en la linea principal. "

@@ -82,7 +82,7 @@ fi
 # Run init.sh if present. Its output is DISCARDED on success and only surfaces
 # on stderr when init.sh fails.
 #
-# Until 1.8.0 this appended init.sh's output to history.md — and history_tail()
+# Until 1.8.0 this appended init.sh's output to history.md — and history_blocks()
 # below reads the tail of that same file. The hook fed itself: every session
 # injected "[init.sh] OK" as "History (reciente)", and real work was buried.
 # Measured on a live project: 1437 of 6265 history lines were init.sh noise.
@@ -128,7 +128,7 @@ if [ -f "$STATE/ideas/inbox.md" ]; then
 fi
 
 # history.md with the hook exhaust (init.sh output, PreCompact stubs, empty
-# session-end blocks) stripped out. Shared by history_tail() (last N lines)
+# session-end blocks) stripped out. Shared by history_blocks() (last N blocks)
 # and the block-count check below (must agree on what counts as a real
 # entry, or the count and the tail it's measuring drift apart).
 #
@@ -143,8 +143,25 @@ history_clean() {
     || true
 }
 
-history_tail() {
-  history_clean | tail -n "$1"
+# Ultimos N bloques con contenido: su encabezado '## ...' + sus primeras L lineas.
+# BUG-007: las ultimas N LINEAS sueltas solian ser una viñeta sin contexto. Los
+# bloques sin contenido tras el filtro (p. ej. '— Session end' vacio) se saltan.
+history_blocks() {
+  history_clean | awk -v n="$1" -v l="$2" '
+    /^## / { nb++; head[nb] = $0; cnt[nb] = 0; next }
+    nb > 0 && cnt[nb] < l { body[nb, ++cnt[nb]] = $0; has[nb] = 1; next }
+    nb > 0 { has[nb] = 1 }
+    END {
+      k = 0
+      for (i = nb; i >= 1 && k < n; i--) {
+        if (!has[i]) continue
+        k++; keep[k] = i
+      }
+      for (j = k; j >= 1; j--) {
+        i = keep[j]; print head[i]
+        for (m = 1; m <= cnt[i]; m++) print body[i, m]
+      }
+    }'
 }
 
 # Active plugin version, so a stale-cache install (hooks/skills edited but the
@@ -164,7 +181,7 @@ fi
 
 # history.md rotation warning. docs/archiving.md sets the limit at 40 entries;
 # an entry is one '## YYYY-MM-DD — <summary>' session block, counted the same
-# way history_tail() decides what is real (raw '## ' counts hook exhaust as
+# way history_blocks() decides what is real (raw '## ' counts hook exhaust as
 # entries too — measured on this repo: 53 raw vs 27 real). Silent when under
 # the limit, so the common case stays quiet.
 HISTORY_COUNT_LINE=""
@@ -175,6 +192,9 @@ if [ -f "$STATE/progress/history.md" ]; then
     && HISTORY_COUNT_LINE="history.md: ${HIST_COUNT}/${HIST_LIMIT} bloques — rota con tracking-progress"
 fi
 
+# Rutas ABSOLUTAS: $CLAUDE_PLUGIN_ROOT no existe en el shell del agente.
+TOOLS_LINE="IDs/tarjetas: bash ${PLUGIN_ROOT}/scripts/next-id.sh FEAT|BUG · bash ${PLUGIN_ROOT}/scripts/move-card.sh <ID> <destino>"
+
 case "$SOURCE" in
   compact|resume)
     # The agent already has the protocol in context. Inject the bare minimum:
@@ -183,7 +203,7 @@ case "$SOURCE" in
 ${INPROGRESS_INDEX}
 
 ## History (última)
-$(history_tail 1)"
+$(history_blocks 1 1)"
     [ -n "$BUGS_LINE" ] && CONTEXT="${CONTEXT}
 ${BUGS_LINE}"
     [ -n "$IDEAS_LINE" ] && CONTEXT="${CONTEXT}
@@ -192,6 +212,8 @@ ${IDEAS_LINE}"
 ${HISTORY_COUNT_LINE}"
     [ -n "$VERSION_LINE" ] && CONTEXT="${CONTEXT}
 ${VERSION_LINE}"
+    CONTEXT="${CONTEXT}
+${TOOLS_LINE}"
     ;;
   *)  # startup | clear (and any unknown source, treated as a cold start)
     # current.md is injected in full unless it exceeds ~100 lines. Measured on
@@ -216,7 +238,7 @@ ${INPROGRESS_INDEX}
 ${CURRENT_WORK}
 
 ## History (reciente)
-$(history_tail 2)"
+$(history_blocks 2 2)"
     [ -n "$BUGS_LINE" ] && CONTEXT="${CONTEXT}
 ${BUGS_LINE}"
     [ -n "$IDEAS_LINE" ] && CONTEXT="${CONTEXT}
@@ -225,6 +247,8 @@ ${IDEAS_LINE}"
 ${HISTORY_COUNT_LINE}"
     [ -n "$VERSION_LINE" ] && CONTEXT="${CONTEXT}
 ${VERSION_LINE}"
+    CONTEXT="${CONTEXT}
+${TOOLS_LINE}"
     ;;
 esac
 

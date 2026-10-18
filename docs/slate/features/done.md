@@ -164,3 +164,38 @@ instalación ya existente: un proyecto que ya tiene Slate instalado necesita
 reinstalar/actualizar para recibir 1.9.0 (la misma clase de bug, documentada
 aquí, que dejó `codebase-map.md` regenerándose de más en proyectos ya
 instalados tras 1.8.0 — ver `templates/init.sh` vs. proyecto ya instalado).
+
+## FEAT-008: `next-id.sh`: siguiente ID libre en una llamada
+- **Status**: done
+- **Created**: 2026-10-18
+- **Updated**: 2026-10-18
+- **Spec**: docs/superpowers/specs/2026-10-18-phlou-findings-1.10-design.md
+- **Plan**: docs/superpowers/plans/2026-10-18-phlou-findings-1.10.md
+- **Branch**: fix/1.10.0-phlou-findings
+- **Verification**: integration-test
+- **Verified**: 2026-10-18
+
+### Subtasks
+- [x] FEAT-008.1: `scripts/next-id.sh` con test
+- [x] FEAT-008.2: `session-start.sh` inyecta la ruta absoluta
+- [x] FEAT-008.3: Skills y `docs/feature-format.md` usan `next-id.sh`
+
+### Notes
+Commit da8af53. Hallazgo de la sesión phlou (phlou-app) del 2026-10-18.
+
+## FEAT-010: `move-card.sh`: mover tarjetas con validación y subtareas `[-]`
+- **Status**: done
+- **Created**: 2026-10-18
+- **Updated**: 2026-10-18
+- **Spec**: docs/superpowers/specs/2026-10-18-phlou-findings-1.10-design.md
+- **Plan**: docs/superpowers/plans/2026-10-18-phlou-findings-1.10.md
+- **Branch**: fix/1.10.0-phlou-findings
+- **Verification**: integration-test
+- **Verified**: 2026-10-18
+
+### Subtasks
+- [x] FEAT-010.1: `scripts/move-card.sh` con test
+- [x] FEAT-010.2: Marcador `[-]` documentado (skills, feature-format, AGENTS.md y template)
+
+### Notes
+Commit abe0d9b. Hallazgo de la sesión phlou (phlou-app) del 2026-10-18.

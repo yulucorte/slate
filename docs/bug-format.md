@@ -19,14 +19,12 @@
 - IDs are zero-padded to 3 digits: `BUG-001`, `BUG-042`, `BUG-100`.
 - IDs are IMMUTABLE once assigned. Never renumber.
 - Numbering is independent of `FEAT-XXX` — the two sequences never collide by design, but there is no requirement that they interleave.
-- To find the next available ID, use a bounded search — never read the files whole:
-
-      grep -hoE 'BUG-[0-9]+' docs/slate/bugs/open.md docs/slate/bugs/fixed.md 2>/dev/null \
-        | grep -oE '[0-9]+' | sort -n | tail -1
-
-  Next ID = that number + 1 (empty output → `001`). Only the live files are
-  scanned; `fixed-archive-*.md` is never needed because archiving moves oldest
-  entries only (see `docs/archiving.md`).
+- To get the next available ID, run `scripts/next-id.sh BUG`: it takes the max
+  over the live files, the reservations in `.git/slate-ids/` and local/remote
+  branch names, reserves the next number and prints it. Never read the files
+  whole. `fixed-archive-*.md` is never needed because archiving moves oldest
+  entries only (see `docs/archiving.md`). Fallback without the script: bounded
+  `grep` over the live files + `scripts/reserve-id.sh BUG-NNN`.
 
 ## Movement rules
 

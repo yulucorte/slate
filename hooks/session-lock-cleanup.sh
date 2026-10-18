@@ -29,6 +29,17 @@ except Exception:
     print('')" 2>/dev/null || true)
 [ -z "$SESSION_ID" ] && exit 0
 
+# Un subagente (payload con `agent_id`) puede compartir session_id con el padre:
+# borrar el candado al terminar el subagente dejaba al padre invisible para el
+# guardian. Solo la sesion principal libera su candado.
+AGENT_ID=$(printf '%s' "$STDIN_JSON" | python3 -c "import sys,json
+try:
+    a = json.load(sys.stdin).get('agent_id')
+    print(a.strip() if isinstance(a, str) else '')
+except Exception:
+    print('')" 2>/dev/null || true)
+[ -n "$AGENT_ID" ] && exit 0
+
 LOCK_DIR="$GIT_COMMON_DIR/slate-sessions"
 rm -f "$LOCK_DIR/$SESSION_ID.lock" 2>/dev/null || true
 
