@@ -38,8 +38,10 @@ See `docs/bug-format.md` for the full reference. Minimum:
 2. **Diagnose**: when the root cause is found, update the `Root cause` field
    in place (this is `open.md`, mutation is allowed here).
 3. **Fix**: when a fix is committed, fill `Fix`, `Commit`, set
-   `Status: fixed` and `Fixed: <date>`, then move the whole entry to
-   `docs/slate/bugs/fixed.md`.
+   `Status: fixed` and `Fixed: <date>`, then move the whole entry with
+   `bash <abs-path>/scripts/move-card.sh BUG-XXX fixed` (absolute path in the
+   session-start context, line "IDs/tarjetas"); it refuses if `Fix`, `Commit`
+   or `Fixed` are missing or `none`.
 4. **Closed bugs never reopen.** If the same bug recurs, file a new
    `BUG-XXX` and note the earlier ID in its `Notes` section.
 

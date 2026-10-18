@@ -21,6 +21,8 @@
     ### Subtasks
     - [ ] FEAT-XXX.1: <subtask description>
     - [ ] FEAT-XXX.2: <subtask description>
+    - [-] FEAT-XXX.3: <subtask moved out> → FEAT-YYY
+    - [-] FEAT-XXX.4: <subtask dropped> (descartada: <motivo>)
 
     ### Notes
     <free-form Markdown>
@@ -51,7 +53,7 @@ The `Branch:` field declares the git branch that carries this feature's commits.
 | From | To | Required |
 |---|---|---|
 | `backlog.md` | `in-progress.md` | User confirms work starts OR plan written |
-| `in-progress.md` | `done.md` | ALL subtasks `[x]` AND `Verified:` date set |
+| `in-progress.md` | `done.md` | ALL subtasks `[x]` (or `[-]` with `→ FEAT-YYY` / `(descartada: <motivo>)`) AND `Verified:` date set — `scripts/move-card.sh` enforces it |
 | `in-progress.md` | `backlog.md` | User explicitly defers (rare) |
 | Any | Edit `done.md` | **FORBIDDEN** — create `Supersedes:` successor instead |
 | `done.md` (>40 entries) | `done-archive-YYYYHn.md` | Bulk move of oldest entries only. NOT an edit — see [`docs/archiving.md`](archiving.md) |

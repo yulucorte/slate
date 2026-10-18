@@ -26,10 +26,12 @@ See `docs/feature-format.md` for the full reference. Minimum:
 
 Every feature MUST pass through `in-progress.md` so SessionStart can recover context.
 
+Move cards with `bash <abs-path>/scripts/move-card.sh <FEAT-ID> backlog|in-progress|done` (absolute path in the session-start context, line "IDs/tarjetas") instead of by hand: it moves the whole block, sets `Status`/`Updated`, and refuses (exit 1, nothing touched) when a rule below is not met.
+
 | From | To | Condition |
 |---|---|---|
 | backlog.md | in-progress.md | Work is starting now. Soft recommendation: only one feature in-progress at a time. |
-| in-progress.md | done.md | ALL subtasks `[x]` AND `Verified: <date>` set. Verification before moving is recommended. |
+| in-progress.md | done.md | ALL subtasks `[x]` (or `[-]` moved `→ FEAT-YYY` / `(descartada: <motivo>)`) AND `Verified: <date>` set. Verification before moving is recommended. |
 | in-progress.md | backlog.md | User explicitly defers it. |
 | backlog.md | done.md | FORBIDDEN. Route through `in-progress.md`. |
 | any | edit done.md | FORBIDDEN. Create a successor with `Supersedes: FEAT-XXX`. |
@@ -65,7 +67,7 @@ shrink `done.md`; full reference in `docs/archiving.md`.
 
 ## When subtasks complete
 
-Mark `[x]` and update `Updated:`. Do not move the feature until ALL subtasks are checked AND `Verified:` is set.
+Mark `[x]` and update `Updated:`. A subtask that will not be done here is marked `[-]` with where it went (`- [-] FEAT-X.N: … → FEAT-YYY`) or why it was dropped (`- [-] FEAT-X.N: … (descartada: <motivo>)`). Do not move the feature until ALL subtasks are `[x]` or a valid `[-]` AND `Verified:` is set; `move-card.sh` enforces it.
 
 ## Anti-patterns
 
