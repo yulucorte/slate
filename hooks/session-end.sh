@@ -6,6 +6,21 @@ set -uo pipefail
 
 PROJECT_ROOT="${CLAUDE_PROJECT_ROOT:-$(pwd)}"
 
+# Dentro de un subagente el payload trae `agent_id` (doc de hooks de Claude Code).
+# El cierre de un subagente NO es el cierre de la sesion: en phlou-app un
+# subagente drenó current.md del padre. Sin agent_id, comportamiento de siempre.
+STDIN_JSON=""
+if [ ! -t 0 ]; then
+  STDIN_JSON=$(cat 2>/dev/null || true)
+fi
+AGENT_ID=$(printf '%s' "$STDIN_JSON" | python3 -c "import sys,json
+try:
+    a = json.load(sys.stdin).get('agent_id')
+    print(a.strip() if isinstance(a, str) else '')
+except Exception:
+    print('')" 2>/dev/null || true)
+[ -n "$AGENT_ID" ] && exit 0
+
 CURRENT="$PROJECT_ROOT/docs/slate/progress/current.md"
 HISTORY="$PROJECT_ROOT/docs/slate/progress/history.md"
 

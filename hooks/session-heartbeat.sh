@@ -87,6 +87,20 @@ def main():
     gcd = os.path.realpath(gcd)
 
     lock = os.path.join(gcd, "slate-sessions", sid + ".lock")
+
+    # Subagente (payload con `agent_id`, doc de hooks de Claude Code): solo
+    # refresca la hora de un candado EXISTENTE. Nunca lo crea ni copia
+    # rama/HEAD/cwd/archivos del subagente: un candado recreado por un subagente
+    # bloqueó git 15 min en phlou-app, y si comparte session_id con el padre
+    # falsearia el candado del padre.
+    agent_id = payload.get("agent_id")
+    if isinstance(agent_id, str) and agent_id.strip():
+        try:
+            os.utime(lock, None)
+        except OSError:
+            pass
+        sys.exit(0)
+
     if not os.path.isfile(lock):
         # 1.9.0: RECREATE instead of doing nothing. session-lock.sh and
         # session-lock-cleanup.sh both reap locks older than 15min
