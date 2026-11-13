@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.2 — 2026-11-13
+
+### Corregido
+
+- **BUG-009** — `next-id.sh` solo lee `docs/slate/<dir>/`; en un repo con el
+  layout viejo (`bugs/` en la raíz) no veía ningún ID y devolvía uno ya usado
+  (novateks-improductivos: dio BUG-013 con los bugs en BUG-015). Ahora sale con
+  exit 2 y un mensaje que dice si hay que migrar a `docs/slate/` o instalar slate,
+  sin reservar nada.
+
 ## 1.10.1 — 2026-10-18
 
 ### Corregido
