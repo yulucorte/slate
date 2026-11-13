@@ -66,6 +66,17 @@ check "FEAT-009 (no octal) -> FEAT-010" "$(nid "$R5" FEAT)" "FEAT-010"
 LINES=$( (cd "$R1" && bash "$SCRIPT" FEAT 2>/dev/null </dev/null) | wc -l | tr -d ' ')
 check "stdout es una sola linea" "$LINES" "1"
 
+# 8. layout viejo sin migrar (bugs/ en la raiz, sin docs/slate/bugs): no adivinar un ID
+R8="$TMP/r8"; mkdir -p "$R8/bugs"; git -C "$R8" init -q -b main .
+printf '## BUG-015: x\n' > "$R8/bugs/open.md"
+ERR=$( (cd "$R8" && bash "$SCRIPT" BUG </dev/null 2>&1 >/dev/null); echo "rc=$?")
+case "$ERR" in *docs/slate*rc=2) pass "layout viejo -> exit 2 avisando docs/slate";; *) fail "layout viejo no aviso ($ERR)";; esac
+[ -z "$(ls "$R8/.git/slate-ids/BUG" 2>/dev/null)" ] && pass "layout viejo no reserva ID" || fail "layout viejo reservo un ID"
+
+# 9. repo sin Slate (sin docs/slate): tampoco adivina
+R9="$TMP/r9"; mkdir -p "$R9"; git -C "$R9" init -q -b main .
+(cd "$R9" && bash "$SCRIPT" FEAT </dev/null >/dev/null 2>&1); [ $? -eq 2 ] && pass "sin docs/slate -> exit 2" || fail "sin docs/slate no dio exit 2"
+
 echo
 if [ "$FAILED" -eq 0 ]; then echo "All next-id tests passed."; exit 0; fi
 echo "next-id tests FAILED."

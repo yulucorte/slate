@@ -9,7 +9,7 @@
 # maquinas o clones que no comparten .git.
 #
 # Uso: next-id.sh FEAT|BUG      -> imprime p. ej. FEAT-043 (exit 0)
-#      uso incorrecto o entorno invalido -> exit 2 con mensaje en stderr
+#      uso incorrecto, entorno invalido o sin docs/slate/<dir> -> exit 2 con mensaje en stderr
 set -uo pipefail
 
 PREFIX="${1:-}"
@@ -25,6 +25,17 @@ if [ -z "$TOP" ] || [ -z "$GCD" ]; then
   echo "next-id: no estas dentro de un repo git" >&2; exit 2
 fi
 case "$GCD" in /*) : ;; *) GCD="$(pwd)/$GCD" ;; esac
+
+# Sin docs/slate/<DIR> el maximo saldria solo de reservas y ramas: un ID ya usado
+# (medido: dio BUG-013 en un repo cuyos bugs seguian en bugs/ de la raiz, ya en BUG-015).
+if [ ! -d "$TOP/docs/slate/$DIR" ]; then
+  if [ -d "$TOP/$DIR" ]; then
+    echo "next-id: $DIR/ sigue en la raiz (layout viejo): migrar a docs/slate/$DIR/ antes de pedir un ID" >&2
+  else
+    echo "next-id: no existe docs/slate/$DIR/ (proyecto sin slate: correr install-into-project.sh)" >&2
+  fi
+  exit 2
+fi
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 LOWER="$(printf '%s' "$PREFIX" | tr 'A-Z' 'a-z')"

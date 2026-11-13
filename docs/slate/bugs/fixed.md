@@ -122,3 +122,15 @@ Reportado por la sesión phlou (phlou-app) el 2026-10-18.
 
 ### Notes
 Hallado por la revisión de seguridad automática tras el merge de 1.10.0 (PR #9). Relacionado con [[BUG-005]].
+
+## BUG-009: `next-id.sh` devolvía un ID ya usado en repos con el layout viejo
+- **Status**: fixed
+- **Severity**: medium
+- **Reported-by**: @felipevillacorte
+- **Detected**: 2026-11-13
+- **Fixed**: 2026-11-13
+- **Where**: `scripts/next-id.sh`
+- **Root cause**: El máximo se calcula de `docs/slate/<dir>/` + reservas + ramas. En novateks-improductivos los bugs seguían en `bugs/` de la raíz (la auto-migración de `session-start.sh` del 2026-10-16 quedó a medias y sin commitear), así que el script no vio ningún BUG del archivo y devolvió BUG-013 (máximo de las reservas) con BUG-013..015 ya existentes. Fallo silencioso: el ID parecía válido.
+- **Fix**: Si no existe `docs/slate/<dir>/`, `next-id.sh` sale con exit 2 sin reservar: "sigue en la raíz (layout viejo): migrar" si existe `<dir>/` en la raíz, o "proyecto sin slate: correr install-into-project.sh". Tests 8 y 9 en `tests/test-next-id.sh` (fallan con 1.10.1). El repo afectado se migró a `docs/slate/` en su PR #84.
+- **Commit**: fix/1.10.2-next-id-layout-viejo
+- **Related feature**: none
